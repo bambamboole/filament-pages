@@ -15,12 +15,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use RalphJSmit\Laravel\SEO\Support\HasSEO;
+use RalphJSmit\Laravel\SEO\Support\SEOData;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Page extends Model implements HasMedia, Linkable
 {
     use HasFactory;
+    use HasSEO;
     use InteractsWithMedia;
     use IsLinkable;
     use SoftDeletes;
@@ -35,6 +38,18 @@ class Page extends Model implements HasMedia, Linkable
             'blocks' => 'array',
             'published_at' => 'datetime',
         ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('og-image')->singleFile();
+    }
+
+    public function getDynamicSEOData(): SEOData
+    {
+        return new SEOData(
+            image: $this->getFirstMediaUrl('og-image') ?: null,
+        );
     }
 
     public function isPublished(): bool
@@ -172,17 +187,29 @@ class Page extends Model implements HasMedia, Linkable
 
     public function computeSlugPath(): string
     {
+        if ($this->parent_id === null) {
+            return '/' . $this->slug;
+        }
+
+        // Load all potential ancestors in a single query and index by ID
+        $ancestors = static::withoutGlobalScopes()
+            ->where('type', static::$pageType)
+            ->pluck('slug', 'id')
+            ->toArray();
+
+        $parentIds = static::withoutGlobalScopes()
+            ->where('type', static::$pageType)
+            ->pluck('parent_id', 'id')
+            ->toArray();
+
         $segments = [$this->slug];
+        $currentParentId = $this->parent_id;
+        $visited = [];
 
-        $parent = $this->parent_id !== null
-            ? static::find($this->parent_id)
-            : null;
-
-        while ($parent) {
-            array_unshift($segments, $parent->slug);
-            $parent = $parent->parent_id !== null
-                ? static::find($parent->parent_id)
-                : null;
+        while ($currentParentId !== null && isset($ancestors[$currentParentId]) && ! isset($visited[$currentParentId])) {
+            $visited[$currentParentId] = true;
+            array_unshift($segments, $ancestors[$currentParentId]);
+            $currentParentId = $parentIds[$currentParentId] ?? null;
         }
 
         return '/' . implode('/', $segments);
