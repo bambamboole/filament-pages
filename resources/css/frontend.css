@@ -1,0 +1,61 @@
+/*
+ * Frontend styles for filament-pages block rendering.
+ *
+ * Include via @filamentPagesStyles in your layout's <head>.
+ */
+
+/* ── Markdown TOC layouts ── */
+
+.fp-toc-wrapper       { display: flex; gap: 2rem; }
+.fp-toc-sidebar       { position: sticky; top: 1rem; align-self: flex-start; width: 16rem; flex-shrink: 0; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.fp-toc-content       { min-width: 0; flex: 1 1 0%; }
+.fp-toc-top           { margin-bottom: 1.5rem; }
+
+/* ── Heading permalinks ── */
+
+.heading-permalink {
+    text-decoration: none;
+    opacity: 0;
+    margin-inline-start: 0.25em;
+    transition: opacity 0.15s ease;
+}
+
+h1:hover .heading-permalink,
+h2:hover .heading-permalink,
+h3:hover .heading-permalink,
+h4:hover .heading-permalink,
+h5:hover .heading-permalink,
+h6:hover .heading-permalink {
+    opacity: 0.6;
+}
+
+.heading-permalink:hover {
+    opacity: 1 !important;
+}
+
+/* ── Table of contents list ── */
+
+.table-of-contents {
+    list-style: none;
+    padding-left: 0;
+}
+
+.table-of-contents ul {
+    list-style: none;
+    padding-left: 1rem;
+}
+
+.table-of-contents li {
+    margin-top: 0.25rem;
+}
+
+.table-of-contents a {
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.table-of-contents a:hover {
+    opacity: 1;
+}

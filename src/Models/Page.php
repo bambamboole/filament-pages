@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Models;
 
+use Bambamboole\FilamentMenu\Concerns\IsLinkable;
+use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,10 +17,11 @@ use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Page extends Model implements HasMedia
+class Page extends Model implements HasMedia, Linkable
 {
     use HasFactory;
     use InteractsWithMedia;
+    use IsLinkable;
     use SoftDeletes;
 
     protected $guarded = [];
@@ -46,6 +49,16 @@ class Page extends Model implements HasMedia
         return $this->published_at !== null && $this->published_at->isFuture();
     }
 
+    public function getLink(): string
+    {
+        return url($this->slug_path);
+    }
+
+    public static function getNameColumn(): string
+    {
+        return 'title';
+    }
+
     public function frontendUrl(): ?string
     {
         if (! config('filament-pages.routing.enabled')) {
@@ -70,7 +83,7 @@ class Page extends Model implements HasMedia
     protected static function booted(): void
     {
         static::saving(function (Page $page) {
-            if (empty($page->slug) && ! empty($page->title)) {
+            if ($page->slug === null && ! empty($page->title)) {
                 $page->slug = Str::slug($page->title);
             }
 

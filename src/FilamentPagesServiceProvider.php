@@ -12,6 +12,7 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Blade;
 use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -78,6 +79,13 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
                 ], 'filament-pages-stubs');
             }
         }
+
+        // Blade directive for frontend styles
+        Blade::directive('filamentPagesStyles', function (): string {
+            $path = __DIR__ . '/../resources/css/frontend.css';
+
+            return "<?php echo '<style>' . file_get_contents('{$path}') . '</style>'; ?>";
+        });
 
         // Testing
         Testable::mixin(new TestsFilamentPages);

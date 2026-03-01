@@ -72,6 +72,13 @@
 .hover\:text-primary-500:hover { color: var(--primary-500); }
 .hover\:text-danger-500:hover  { color: var(--danger-500); }
 
+/* ── Markdown TOC layouts ── */
+
+.fp-toc-wrapper       { display: flex; gap: 2rem; }
+.fp-toc-sidebar       { position: sticky; top: 1rem; align-self: flex-start; width: 16rem; flex-shrink: 0; max-height: calc(100vh - 2rem); overflow-y: auto; }
+.fp-toc-content       { min-width: 0; flex: 1 1 0%; }
+.fp-toc-top           { margin-bottom: 1.5rem; }
+
 /* ── Dark mode ── */
 
 .dark\:bg-gray-800:is(.dark *)     { background-color: var(--color-gray-800); }

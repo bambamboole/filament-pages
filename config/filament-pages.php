@@ -17,4 +17,20 @@ return [
         \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
         \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
     ],
+    'markdown' => [
+        'blade_blocks' => true,
+        'torchlight' => false,
+        'heading_permalink' => [
+            'html_class' => 'heading-permalink',
+            'symbol' => '#',
+            'insert' => 'after',
+        ],
+        'table_of_contents' => [
+            'html_class' => 'table-of-contents',
+            'style' => 'bullet',
+            'normalize' => 'relative',
+            'min_heading_level' => 2,
+            'max_heading_level' => 6,
+        ],
+    ],
 ];
