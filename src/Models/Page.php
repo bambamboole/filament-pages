@@ -104,7 +104,7 @@ class Page extends Model implements HasMedia, Linkable
 
         static::saving(function (Page $page) {
             $page->type ??= static::$pageType;
-            if ($page->slug === null && ! empty($page->title)) {
+            if (empty($page->slug) && ! empty($page->title)) {
                 $page->slug = Str::slug($page->title);
             }
 
