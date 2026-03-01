@@ -17,214 +17,221 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        // --- Home ---
-        Page::create([
+        // ===========================
+        // English pages (locale: en)
+        // ===========================
+
+        $home = Page::create([
             'title' => 'Home',
             'slug' => 'home',
-            'content' => "# Welcome\n\nWelcome to our website.",
+            'locale' => 'en',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Welcome\n\nWelcome to our website."]]],
+            'published_at' => now(),
         ]);
 
-        // --- About (with children & grandchildren) ---
         $about = Page::create([
             'title' => 'About',
             'slug' => 'about',
-            'content' => "# About Us\n\nWe build great software.",
+            'locale' => 'en',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# About Us\n\nWe build great software."]]],
+            'published_at' => now(),
         ]);
 
         $team = Page::create([
             'title' => 'Team',
             'slug' => 'team',
+            'locale' => 'en',
             'parent_id' => $about->id,
-            'content' => "# Our Team\n\nMeet the people behind the product.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Our Team\n\nMeet the people behind the product."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Leadership',
             'slug' => 'leadership',
+            'locale' => 'en',
             'parent_id' => $team->id,
-            'content' => "# Leadership\n\nOur executive team.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Leadership\n\nOur executive team."]]],
         ]);
 
         Page::create([
             'title' => 'Engineering',
             'slug' => 'engineering',
+            'locale' => 'en',
             'parent_id' => $team->id,
-            'content' => "# Engineering\n\nOur engineering team.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Engineering\n\nOur engineering team."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Careers',
             'slug' => 'careers',
+            'locale' => 'en',
             'parent_id' => $about->id,
-            'content' => "# Careers\n\nJoin our growing team.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Careers\n\nJoin our growing team."]]],
         ]);
 
-        Page::create([
-            'title' => 'History',
-            'slug' => 'history',
-            'parent_id' => $about->id,
-            'content' => "# Our History\n\nFounded in 2020.",
-        ]);
-
-        Page::create([
-            'title' => 'Mission & Values',
-            'slug' => 'mission-values',
-            'parent_id' => $about->id,
-            'content' => "# Mission & Values\n\nWhat drives us forward.",
-        ]);
-
-        // --- Services (with children) ---
         $services = Page::create([
             'title' => 'Services',
             'slug' => 'services',
-            'content' => "# Services\n\nWhat we offer.",
+            'locale' => 'en',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Services\n\nWhat we offer."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Consulting',
             'slug' => 'consulting',
+            'locale' => 'en',
             'parent_id' => $services->id,
-            'content' => "# Consulting\n\nExpert advice for your projects.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Consulting\n\nExpert advice for your projects."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Development',
             'slug' => 'development',
+            'locale' => 'en',
             'parent_id' => $services->id,
-            'content' => "# Development\n\nCustom software development.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Development\n\nCustom software development."]]],
         ]);
 
-        Page::create([
-            'title' => 'Design',
-            'slug' => 'design',
-            'parent_id' => $services->id,
-            'content' => "# Design\n\nUI/UX and brand design.",
-        ]);
-
-        Page::create([
-            'title' => 'Hosting & Infrastructure',
-            'slug' => 'hosting',
-            'parent_id' => $services->id,
-            'content' => "# Hosting\n\nReliable cloud hosting.",
-        ]);
-
-        // --- Products (with children & grandchildren) ---
-        $products = Page::create([
-            'title' => 'Products',
-            'slug' => 'products',
-            'content' => "# Products\n\nOur product lineup.",
-        ]);
-
-        $openSource = Page::create([
-            'title' => 'Open Source',
-            'slug' => 'open-source',
-            'parent_id' => $products->id,
-            'content' => "# Open Source\n\nOur contributions to the community.",
-        ]);
-
-        Page::create([
-            'title' => 'Filament Pages',
-            'slug' => 'filament-pages',
-            'parent_id' => $openSource->id,
-            'content' => "# Filament Pages\n\nA page tree plugin for Filament.",
-        ]);
-
-        Page::create([
-            'title' => 'Filament Menu',
-            'slug' => 'filament-menu',
-            'parent_id' => $openSource->id,
-            'content' => "# Filament Menu\n\nA menu builder for Filament.",
-        ]);
-
-        Page::create([
-            'title' => 'Enterprise',
-            'slug' => 'enterprise',
-            'parent_id' => $products->id,
-            'content' => "# Enterprise\n\nSolutions for large organizations.",
-        ]);
-
-        Page::create([
-            'title' => 'Pricing',
-            'slug' => 'pricing',
-            'parent_id' => $products->id,
-            'content' => "# Pricing\n\nTransparent pricing for every plan.",
-        ]);
-
-        // --- Resources (with children) ---
-        $resources = Page::create([
-            'title' => 'Resources',
-            'slug' => 'resources',
-            'content' => "# Resources\n\nLearn and explore.",
-        ]);
-
-        Page::create([
-            'title' => 'Blog',
-            'slug' => 'blog',
-            'parent_id' => $resources->id,
-            'content' => "# Blog\n\nNews and insights.",
-        ]);
-
-        Page::create([
-            'title' => 'Documentation',
-            'slug' => 'docs',
-            'parent_id' => $resources->id,
-            'content' => "# Documentation\n\nGuides and API reference.",
-        ]);
-
-        Page::create([
-            'title' => 'Tutorials',
-            'slug' => 'tutorials',
-            'parent_id' => $resources->id,
-            'content' => "# Tutorials\n\nStep-by-step learning.",
-        ]);
-
-        Page::create([
-            'title' => 'FAQ',
-            'slug' => 'faq',
-            'parent_id' => $resources->id,
-            'content' => "# FAQ\n\nFrequently asked questions.",
-        ]);
-
-        // --- Contact ---
         Page::create([
             'title' => 'Contact',
             'slug' => 'contact',
-            'content' => "# Contact\n\nGet in touch with us.",
+            'locale' => 'en',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Contact\n\nGet in touch with us."]]],
+            'published_at' => now(),
         ]);
 
-        // --- Legal (with children) ---
         $legal = Page::create([
             'title' => 'Legal',
             'slug' => 'legal',
-            'content' => "# Legal\n\nLegal information.",
+            'locale' => 'en',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Legal\n\nLegal information."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Privacy Policy',
             'slug' => 'privacy',
+            'locale' => 'en',
             'parent_id' => $legal->id,
-            'content' => "# Privacy Policy\n\nYour privacy matters to us.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Privacy Policy\n\nYour privacy matters to us."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
             'title' => 'Terms of Service',
             'slug' => 'terms',
+            'locale' => 'en',
             'parent_id' => $legal->id,
-            'content' => "# Terms of Service\n\nRules and regulations.",
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Terms of Service\n\nRules and regulations."]]],
+            'published_at' => now(),
+        ]);
+
+        // ===========================
+        // German pages (locale: de)
+        // ===========================
+
+        Page::create([
+            'title' => 'Startseite',
+            'slug' => 'home',
+            'locale' => 'de',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Willkommen\n\nWillkommen auf unserer Webseite."]]],
+            'published_at' => now(),
+        ]);
+
+        $ueberUns = Page::create([
+            'title' => 'Über uns',
+            'slug' => 'ueber-uns',
+            'locale' => 'de',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Über uns\n\nWir entwickeln großartige Software."]]],
+            'published_at' => now(),
+        ]);
+
+        $teamDe = Page::create([
+            'title' => 'Team',
+            'slug' => 'team',
+            'locale' => 'de',
+            'parent_id' => $ueberUns->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Unser Team\n\nLernen Sie die Menschen hinter dem Produkt kennen."]]],
+            'published_at' => now(),
         ]);
 
         Page::create([
-            'title' => 'Imprint',
-            'slug' => 'imprint',
-            'parent_id' => $legal->id,
-            'content' => "# Imprint\n\nLegal disclosure.",
+            'title' => 'Führungsteam',
+            'slug' => 'fuehrungsteam',
+            'locale' => 'de',
+            'parent_id' => $teamDe->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Führungsteam\n\nUnser Führungsteam."]]],
         ]);
 
         Page::create([
-            'title' => 'Cookie Policy',
-            'slug' => 'cookies',
-            'parent_id' => $legal->id,
-            'content' => "# Cookie Policy\n\nHow we use cookies.",
+            'title' => 'Karriere',
+            'slug' => 'karriere',
+            'locale' => 'de',
+            'parent_id' => $ueberUns->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Karriere\n\nWerden Sie Teil unseres Teams."]]],
+        ]);
+
+        $leistungen = Page::create([
+            'title' => 'Leistungen',
+            'slug' => 'leistungen',
+            'locale' => 'de',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Leistungen\n\nWas wir anbieten."]]],
+            'published_at' => now(),
+        ]);
+
+        Page::create([
+            'title' => 'Beratung',
+            'slug' => 'beratung',
+            'locale' => 'de',
+            'parent_id' => $leistungen->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Beratung\n\nKompetente Beratung für Ihre Projekte."]]],
+            'published_at' => now(),
+        ]);
+
+        Page::create([
+            'title' => 'Entwicklung',
+            'slug' => 'entwicklung',
+            'locale' => 'de',
+            'parent_id' => $leistungen->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Entwicklung\n\nIndividuelle Softwareentwicklung."]]],
+        ]);
+
+        Page::create([
+            'title' => 'Kontakt',
+            'slug' => 'kontakt',
+            'locale' => 'de',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Kontakt\n\nNehmen Sie Kontakt mit uns auf."]]],
+            'published_at' => now(),
+        ]);
+
+        $rechtliches = Page::create([
+            'title' => 'Rechtliches',
+            'slug' => 'rechtliches',
+            'locale' => 'de',
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Rechtliches\n\nRechtliche Informationen."]]],
+            'published_at' => now(),
+        ]);
+
+        Page::create([
+            'title' => 'Datenschutz',
+            'slug' => 'datenschutz',
+            'locale' => 'de',
+            'parent_id' => $rechtliches->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Datenschutz\n\nIhre Privatsphäre ist uns wichtig."]]],
+            'published_at' => now(),
+        ]);
+
+        Page::create([
+            'title' => 'Impressum',
+            'slug' => 'impressum',
+            'locale' => 'de',
+            'parent_id' => $rechtliches->id,
+            'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Impressum\n\nAngaben gemäß § 5 TMG."]]],
+            'published_at' => now(),
         ]);
     }
 }

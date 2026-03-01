@@ -6,14 +6,19 @@ namespace Bambamboole\FilamentPages\Filament\Pages;
 
 use BackedEnum;
 use Bambamboole\FilamentPages\Filament\Resources\PageResource;
+use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\Action;
-use Filament\Forms\Components\MarkdownEditor;
+use Filament\Actions\SelectAction;
+use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page as FilamentPage;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 
@@ -27,6 +32,17 @@ class PageTreePage extends FilamentPage
 
     protected static ?string $slug = 'page-tree';
 
+    public ?string $locale = '';
+
+    public function mount(): void
+    {
+        $plugin = FilamentPagesPlugin::get();
+
+        if ($plugin->hasLocales()) {
+            $this->locale = array_key_first($plugin->getLocales());
+        }
+    }
+
     public function content(Schema $schema): Schema
     {
         return $schema
@@ -35,17 +51,33 @@ class PageTreePage extends FilamentPage
             ]);
     }
 
+    public function hasLocales(): bool
+    {
+        return FilamentPagesPlugin::get()->hasLocales();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getLocaleOptions(): array
+    {
+        return FilamentPagesPlugin::get()->getLocales();
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, Page>
      */
     public function getTreeItems(): \Illuminate\Database\Eloquent\Collection
     {
-        return Page::buildTree();
+        return Page::buildTree($this->locale ?: null);
     }
 
     public function editPageAction(): Action
     {
         return Action::make('editPage')
+            ->slideOver()
+            ->modalWidth(Width::FiveExtraLarge)
+            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
             ->mountUsing(function (Schema $form, array $arguments): void {
                 $page = Page::find($arguments['pageId']);
 
@@ -56,8 +88,9 @@ class PageTreePage extends FilamentPage
                 $form->fill([
                     'title' => $page->title,
                     'slug' => $page->slug,
+                    'locale' => $page->locale,
                     'parent_id' => $page->parent_id,
-                    'content' => $page->content,
+                    'blocks' => $page->blocks ?? [],
                 ]);
             })
             ->schema(fn (array $arguments): array => [
@@ -65,13 +98,21 @@ class PageTreePage extends FilamentPage
                     ->required(),
                 TextInput::make('slug')
                     ->required(),
+                Select::make('locale')
+                    ->options(FilamentPagesPlugin::get()->getLocales())
+                    ->visible(FilamentPagesPlugin::get()->hasLocales())
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
                 Select::make('parent_id')
                     ->label('Parent Page')
-                    ->options(fn () => Page::getNestedOptions($arguments['pageId'] ?? null))
+                    ->options(fn (Get $get) => Page::getNestedOptions($arguments['pageId'] ?? null, $get('locale')))
                     ->placeholder('None (Root Page)'),
-                MarkdownEditor::make('content'),
+                Builder::make('blocks')
+                    ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
+                    ->collapsible()
+                    ->columnSpanFull(),
             ])
-            ->action(function (array $data, array $arguments): void {
+            ->action(function (array $data, array $arguments, Schema $form): void {
                 $page = Page::find($arguments['pageId']);
 
                 if (! $page) {
@@ -83,6 +124,7 @@ class PageTreePage extends FilamentPage
                 }
 
                 $page->update($data);
+                $form->model($page)->saveRelationships();
             });
     }
 
@@ -117,31 +159,54 @@ class PageTreePage extends FilamentPage
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('createPage')
-                ->label('New Page')
-                ->schema([
-                    TextInput::make('title')
-                        ->required(),
-                    TextInput::make('slug'),
-                    Select::make('parent_id')
-                        ->label('Parent Page')
-                        ->options(fn () => Page::getNestedOptions())
-                        ->placeholder('None (Root Page)'),
-                    MarkdownEditor::make('content'),
-                ])
-                ->action(function (array $data): void {
-                    if (empty($data['slug']) && ! empty($data['title'])) {
-                        $data['slug'] = Str::slug($data['title']);
-                    }
+        $actions = [];
 
-                    Page::create($data);
-                }),
-            Action::make('tableView')
-                ->label('Table View')
-                ->icon(Heroicon::OutlinedTableCells)
-                ->url(PageResource::getUrl()),
-        ];
+        if (FilamentPagesPlugin::get()->hasLocales()) {
+            $actions[] = SelectAction::make('locale')
+                ->label('Locale')
+                ->options(['' => 'No Locale'] + FilamentPagesPlugin::get()->getLocales());
+        }
+
+        $actions[] = Action::make('createPage')
+            ->label('New Page')
+            ->slideOver()
+            ->modalWidth(Width::FiveExtraLarge)
+            ->fillForm([
+                'locale' => $this->locale,
+            ])
+            ->schema([
+                TextInput::make('title')
+                    ->required(),
+                TextInput::make('slug'),
+                Select::make('locale')
+                    ->options(FilamentPagesPlugin::get()->getLocales())
+                    ->visible(FilamentPagesPlugin::get()->hasLocales())
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
+                Select::make('parent_id')
+                    ->label('Parent Page')
+                    ->options(fn (Get $get) => Page::getNestedOptions(locale: $get('locale')))
+                    ->placeholder('None (Root Page)'),
+                Builder::make('blocks')
+                    ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
+                    ->collapsible()
+                    ->columnSpanFull(),
+            ])
+            ->action(function (array $data, Schema $form): void {
+                if (empty($data['slug']) && ! empty($data['title'])) {
+                    $data['slug'] = Str::slug($data['title']);
+                }
+
+                $page = Page::create($data);
+                $form->model($page)->saveRelationships();
+            });
+
+        $actions[] = Action::make('tableView')
+            ->label('Table View')
+            ->icon(Heroicon::OutlinedTableCells)
+            ->url(PageResource::getUrl());
+
+        return $actions;
     }
 
     /**

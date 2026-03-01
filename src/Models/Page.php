@@ -9,11 +9,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Page extends Model
+class Page extends Model implements HasMedia
 {
     use HasFactory;
+    use InteractsWithMedia;
+    use SoftDeletes;
 
     protected $guarded = [];
 
@@ -21,7 +26,18 @@ class Page extends Model
     {
         return [
             'blocks' => 'array',
+            'published_at' => 'datetime',
         ];
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->published_at !== null && $this->published_at->lte(now());
+    }
+
+    public function isDraft(): bool
+    {
+        return ! $this->isPublished();
     }
 
     protected static function booted(): void
@@ -80,9 +96,12 @@ class Page extends Model
     /**
      * @return Collection<int, self>
      */
-    public static function buildTree(): Collection
+    public static function buildTree(?string $locale = null): Collection
     {
-        $items = static::query()->orderBy('order')->get();
+        $items = static::query()
+            ->where('locale', $locale)
+            ->orderBy('order')
+            ->get();
         $grouped = $items->groupBy(fn (self $item): int => $item->parent_id ?? 0);
 
         static::buildTreeRelations($grouped, 0);
@@ -128,9 +147,9 @@ class Page extends Model
      *
      * @return array<int, string>
      */
-    public static function getNestedOptions(?int $excludeId = null): array
+    public static function getNestedOptions(?int $excludeId = null, ?string $locale = null): array
     {
-        $tree = static::buildTree();
+        $tree = static::buildTree($locale);
         $options = [];
         static::flattenTreeOptions($tree, $options, 0, $excludeId);
 

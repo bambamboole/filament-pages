@@ -6,11 +6,12 @@ namespace Bambamboole\FilamentPages\Filament\Resources;
 
 use BackedEnum;
 use Bambamboole\FilamentPages\Filament\Resources\PageResource\Pages;
+use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -54,11 +55,19 @@ class PageResource extends Resource
                     Hidden::make('is_slug_changed_manually')
                         ->default(false)
                         ->dehydrated(false),
+                    Select::make('locale')
+                        ->options(FilamentPagesPlugin::get()->getLocales())
+                        ->visible(FilamentPagesPlugin::get()->hasLocales())
+                        ->live()
+                        ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
                     Select::make('parent_id')
                         ->label('Parent Page')
-                        ->options(fn (?Page $record) => Page::getNestedOptions($record?->id))
+                        ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($record?->id, $get('locale')))
                         ->placeholder('None (Root Page)'),
-                    MarkdownEditor::make('content'),
+                    Builder::make('blocks')
+                        ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
+                        ->collapsible()
+                        ->columnSpanFull(),
                 ]),
             ]);
     }

@@ -27,7 +27,6 @@ it('can create a page', function () {
         ->fillForm([
             'title' => 'About Us',
             'slug' => 'about-us',
-            'content' => 'This is our about page.',
         ])
         ->call('create')
         ->assertHasNoFormErrors();

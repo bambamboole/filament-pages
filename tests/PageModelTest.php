@@ -77,7 +77,7 @@ it('auto-generates slug from title when slug is empty', function () {
 });
 
 it('stores blocks as array', function () {
-    $blocks = [['type' => 'text', 'data' => ['content' => 'Hello']]];
+    $blocks = [['type' => 'markdown', 'data' => ['content' => 'Hello']]];
     $page = Page::factory()->create(['blocks' => $blocks]);
 
     expect($page->fresh()->blocks)->toBe($blocks);

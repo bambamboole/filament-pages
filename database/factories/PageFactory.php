@@ -38,7 +38,21 @@ class PageFactory extends Factory
     public function withBlocks(array $blocks = []): static
     {
         return $this->state(fn () => [
-            'blocks' => $blocks ?: [['type' => 'text', 'data' => ['content' => fake()->paragraph()]]],
+            'blocks' => $blocks ?: [['type' => 'markdown', 'data' => ['content' => fake()->paragraph()]]],
+        ]);
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn () => [
+            'published_at' => now(),
+        ]);
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn () => [
+            'published_at' => null,
         ]);
     }
 }

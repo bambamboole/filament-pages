@@ -13,6 +13,9 @@
             </div>
         </div>
         <div class="flex gap-1 items-center">
+            <x-filament::badge :color="$page->isPublished() ? 'success' : 'gray'" size="sm">
+                {{ $page->isPublished() ? 'Published' : 'Draft' }}
+            </x-filament::badge>
             <button
                 type="button"
                 class="text-gray-400 hover:text-primary-500 p-1"

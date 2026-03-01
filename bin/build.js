@@ -1,6 +1,17 @@
 import esbuild from 'esbuild'
+import { copyFileSync, mkdirSync, watch as fsWatch } from 'node:fs'
+import { dirname } from 'node:path'
 
 const isDev = process.argv.includes('--dev')
+
+const cssSrc = './resources/css/filament-pages.css'
+const cssDist = './resources/dist/css/filament-pages.css'
+
+function copyCSS() {
+    mkdirSync(dirname(cssDist), { recursive: true })
+    copyFileSync(cssSrc, cssDist)
+    console.log(`CSS copied at ${new Date(Date.now()).toLocaleTimeString()}: ${cssDist}`)
+}
 
 async function compile(options) {
     const context = await esbuild.context(options)
@@ -41,6 +52,12 @@ const defaultOptions = {
             })
         }
     }],
+}
+
+copyCSS()
+
+if (isDev) {
+    fsWatch(cssSrc, () => copyCSS())
 }
 
 compile({

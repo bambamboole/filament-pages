@@ -30,7 +30,10 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->plugin(FilamentPagesPlugin::make())
+            ->plugin(
+                FilamentPagesPlugin::make()
+                    ->locales(['en' => 'English', 'de' => 'Deutsch'])
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
