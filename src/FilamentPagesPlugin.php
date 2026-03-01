@@ -13,6 +13,7 @@ use Filament\Contracts\Plugin;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Panel;
 use Filament\Resources\Resource;
+use Pboivin\FilamentPeek\FilamentPeekPlugin;
 
 class FilamentPagesPlugin implements Plugin
 {
@@ -30,6 +31,10 @@ class FilamentPagesPlugin implements Plugin
 
     /** @var array<Closure> */
     protected array $treeItemActionCallbacks = [];
+
+    protected bool $previewEnabled = false;
+
+    protected ?string $previewView = null;
 
     public function getId(): string
     {
@@ -132,6 +137,24 @@ class FilamentPagesPlugin implements Plugin
         return $this->resource ?? config('filament-pages.resource', PageResource::class);
     }
 
+    public function withPreview(?string $view = null): static
+    {
+        $this->previewEnabled = true;
+        $this->previewView = $view;
+
+        return $this;
+    }
+
+    public function isPreviewEnabled(): bool
+    {
+        return $this->previewEnabled;
+    }
+
+    public function getPreviewView(): string
+    {
+        return $this->previewView ?? 'filament-pages::preview';
+    }
+
     public function treeItemActions(Closure $callback): static
     {
         $this->treeItemActionCallbacks[] = $callback;
@@ -156,6 +179,15 @@ class FilamentPagesPlugin implements Plugin
             ->pages([
                 PageTreePage::class,
             ]);
+
+        if ($this->previewEnabled) {
+            $hasFilamentPeek = collect($panel->getPlugins())
+                ->contains(fn (Plugin $plugin): bool => $plugin instanceof FilamentPeekPlugin);
+
+            if (! $hasFilamentPeek) {
+                $panel->plugin(FilamentPeekPlugin::make());
+            }
+        }
     }
 
     public function boot(Panel $panel): void

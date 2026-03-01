@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->plugin(
                 FilamentPagesPlugin::make()
                     ->locales(['en' => 'English', 'de' => 'Deutsch'])
+                    ->withPreview()
             )
             ->middleware([
                 EncryptCookies::class,

@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
+            $table->string('type')->default('page')->index();
             $table->string('title');
             $table->string('slug');
             $table->string('slug_path');
@@ -23,8 +24,8 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->unique(['locale', 'slug_path']);
-            $table->unique(['locale', 'parent_id', 'slug']);
+            $table->unique(['type', 'locale', 'slug_path']);
+            $table->unique(['type', 'locale', 'parent_id', 'slug']);
         });
     }
 

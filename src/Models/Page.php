@@ -7,6 +7,7 @@ namespace Bambamboole\FilamentPages\Models;
 use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,8 @@ class Page extends Model implements HasMedia, Linkable
     use InteractsWithMedia;
     use IsLinkable;
     use SoftDeletes;
+
+    protected static string $pageType = 'page';
 
     protected $guarded = [];
 
@@ -82,7 +85,10 @@ class Page extends Model implements HasMedia, Linkable
 
     protected static function booted(): void
     {
+        static::addGlobalScope('type', fn (Builder $query) => $query->where('type', static::$pageType));
+
         static::saving(function (Page $page) {
+            $page->type ??= static::$pageType;
             if ($page->slug === null && ! empty($page->title)) {
                 $page->slug = Str::slug($page->title);
             }

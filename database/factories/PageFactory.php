@@ -15,6 +15,7 @@ class PageFactory extends Factory
         $title = fake()->unique()->words(rand(2, 4), true);
 
         return [
+            'type' => 'page',
             'title' => $title,
             'slug' => Str::slug($title),
             'parent_id' => null,

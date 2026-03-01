@@ -21,9 +21,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
+use Pboivin\FilamentPeek\Facades\Peek;
+use Pboivin\FilamentPeek\Pages\Concerns\HasPreviewModal;
 
 class PageTreePage extends FilamentPage
 {
+    use HasPreviewModal;
+
     protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $navigationLabel = 'Pages';
@@ -41,6 +45,20 @@ class PageTreePage extends FilamentPage
         if ($plugin->hasLocales()) {
             $this->locale = array_key_first($plugin->getLocales());
         }
+
+        if ($plugin->isPreviewEnabled()) {
+            Peek::registerPreviewModal();
+        }
+    }
+
+    protected function getPreviewModalView(): ?string
+    {
+        return FilamentPagesPlugin::get()->getPreviewView();
+    }
+
+    protected function getPreviewModalDataRecordKey(): string
+    {
+        return 'page';
     }
 
     public function content(Schema $schema): Schema
@@ -135,14 +153,32 @@ class PageTreePage extends FilamentPage
                 $page->update($data);
                 $form->model($page)->saveRelationships();
             })
-            ->extraModalFooterActions(fn (array $arguments): array => [
+            ->extraModalFooterActions(fn (array $arguments): array => array_filter([
+                FilamentPagesPlugin::get()->isPreviewEnabled()
+                    ? Action::make('previewEditPage')
+                        ->label(__('filament-peek::ui.preview-action-label'))
+                        ->color('gray')
+                        ->action(function (array $data) use ($arguments): void {
+                            $page = Page::find($arguments['pageId']);
+
+                            if (! $page) {
+                                return;
+                            }
+
+                            $previewPage = $page->replicate();
+                            $previewPage->fill($data);
+
+                            $this->setPreviewableRecord($previewPage);
+                            $this->openPreviewModal();
+                        })
+                    : null,
                 Action::make('visitPage')
                     ->label('Visit Page')
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->color('gray')
                     ->url(fn (): ?string => Page::find($arguments['pageId'])?->frontendUrl(), shouldOpenInNewTab: true)
                     ->visible(fn (): bool => (bool) Page::find($arguments['pageId'])?->isPublished()),
-            ]);
+            ]));
     }
 
     public function deletePageAction(): Action
@@ -264,7 +300,20 @@ class PageTreePage extends FilamentPage
 
                 $page = Page::create($data);
                 $form->model($page)->saveRelationships();
-            });
+            })
+            ->extraModalFooterActions(fn (): array => array_filter([
+                FilamentPagesPlugin::get()->isPreviewEnabled()
+                    ? Action::make('previewCreatePage')
+                        ->label(__('filament-peek::ui.preview-action-label'))
+                        ->color('gray')
+                        ->action(function (array $data): void {
+                            $previewPage = new Page($data);
+
+                            $this->setPreviewableRecord($previewPage);
+                            $this->openPreviewModal();
+                        })
+                    : null,
+            ]));
 
         $actions[] = Action::make('tableView')
             ->label('Table View')
