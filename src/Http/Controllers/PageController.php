@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Http\Controllers;
 
+use Bambamboole\FilamentPages\Layouts\DefaultLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -35,12 +36,16 @@ class PageController
         /** @var array<class-string<PageLayout>> $layoutClasses */
         $layoutClasses = config('filament-pages.layouts', []);
 
+        if ($layoutClasses === []) {
+            return new DefaultLayout;
+        }
+
         $map = [];
         foreach ($layoutClasses as $class) {
             $map[$class::name()] = $class;
         }
 
-        $layoutClass = $map[$layoutKey] ?? reset($layoutClasses) ?: $layoutClasses[0];
+        $layoutClass = $map[$layoutKey] ?? reset($layoutClasses);
 
         return new $layoutClass;
     }
