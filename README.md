@@ -1,70 +1,220 @@
-# :package_description
+# Filament Pages
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/bambamboole/filament-pages.svg?style=flat-square)](https://packagist.org/packages/bambamboole/filament-pages)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/bambamboole/filament-pages/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/bambamboole/filament-pages/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/bambamboole/filament-pages.svg?style=flat-square)](https://packagist.org/packages/bambamboole/filament-pages)
 
-<!--delete-->
----
-This repo can be used to scaffold a Filament plugin. Follow these steps to get started:
-
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Make something great!
----
-<!--/delete-->
-
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+A Filament plugin for managing hierarchical, block-based content pages. Features a drag-and-drop page tree, extensible block system (Markdown, Image out of the box), nested pages with automatic slug path computation, multi-locale support, SEO integration, and live preview.
 
 ## Installation
 
-You can install the package via composer:
-
 ```bash
-composer require :vendor_slug/:package_slug
+composer require bambamboole/filament-pages
 ```
 
-> [!IMPORTANT]
-> If you have not set up a custom theme and are using Filament Panels follow the instructions in the [Filament Docs](https://filamentphp.com/docs/4.x/styling/overview#creating-a-custom-theme) first.
-
-After setting up a custom theme add the plugin's views to your theme css file or your app's css file if using the standalone packages.
-
-```css
-@source '../../../../vendor/:vendor_slug/:package_slug/resources/**/*.blade.php';
-```
-
-You can publish and run the migrations with:
+Publish and run the migrations:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
+php artisan vendor:publish --tag="filament-pages-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
+Optionally publish the config:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan vendor:publish --tag="filament-pages-config"
 ```
 
-Optionally, you can publish the views using
+Register the plugin in your Filament panel provider:
+
+```php
+use Bambamboole\FilamentPages\FilamentPagesPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->plugins([
+            FilamentPagesPlugin::make(),
+        ]);
+}
+```
+
+Add the plugin views to your Tailwind CSS content paths:
+
+```css
+@source '../../../../vendor/bambamboole/filament-pages/resources/**/*.blade.php';
+```
+
+## Configuration
+
+The plugin is configured through the fluent API on `FilamentPagesPlugin`:
+
+```php
+FilamentPagesPlugin::make()
+    ->blocks([
+        MarkdownBlock::class,
+        ImageBlock::class,
+        MyCustomBlock::class,
+    ])
+    ->layouts([
+        DefaultLayout::class,
+        LandingPageLayout::class,
+    ])
+    ->locales([
+        'en' => 'English',
+        'de' => 'Deutsch',
+    ])
+    ->withSeo()
+    ->withPreview()
+```
+
+### Blocks
+
+Register block types that are available in the page builder. Each block must extend `Bambamboole\FilamentPages\Blocks\PageBlock`:
+
+```php
+->blocks([MarkdownBlock::class, ImageBlock::class])
+```
+
+Two blocks ship out of the box:
+- **MarkdownBlock** — Rich markdown editor with optional table of contents (top/left/right positioning), front matter parsing, and Torchlight syntax highlighting.
+- **ImageBlock** — Spatie Media Library file upload with responsive images and an image editor.
+
+### Layouts
+
+Layouts control how pages render on the frontend. Each layout implements `Bambamboole\FilamentPages\Layouts\PageLayout`:
+
+```php
+->layouts([DefaultLayout::class, CustomLayout::class])
+```
+
+### Multi-Locale
+
+Enable multi-language content by passing locale options:
+
+```php
+->locales(['en' => 'English', 'de' => 'Deutsch'])
+```
+
+When locales are enabled, the page tree filters by locale and frontend routes include a `{locale}` prefix.
+
+### SEO
+
+Enable the SEO tab on page forms (powered by `ralphjsmit/laravel-filament-seo`):
+
+```php
+->withSeo()
+```
+
+Extend the SEO form with custom fields:
+
+```php
+->seoForm(fn () => [
+    TextInput::make('canonical_url'),
+])
+```
+
+### Preview
+
+Enable live preview modals (powered by `pboivin/filament-peek`):
+
+```php
+->withPreview()
+->withPreview('my-custom-preview-view') // optional custom view
+```
+
+## Creating Custom Blocks
+
+Generate a block stub with the Artisan command:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-views"
+php artisan filament-pages:make-block MyCustomBlock
 ```
 
-This is the contents of the published config file:
+A custom block extends `PageBlock` and defines a name, a Filament form schema, and optionally a `mutateData()` method to transform data before rendering:
 
 ```php
-return [
-];
+use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Filament\Forms\Components\Builder\Block;
+use Filament\Forms\Components\TextInput;
+
+class CallToActionBlock extends PageBlock
+{
+    public static function name(): string
+    {
+        return 'call-to-action';
+    }
+
+    public static function make(): Block
+    {
+        return Block::make(static::name())
+            ->label('Call to Action')
+            ->schema([
+                TextInput::make('heading')->required(),
+                TextInput::make('button_text')->required(),
+                TextInput::make('button_url')->url()->required(),
+            ]);
+    }
+
+    public static function viewName(): string
+    {
+        return 'blocks.call-to-action';
+    }
+}
 ```
 
-## Usage
+## Creating Custom Layouts
+
+Generate a layout stub:
+
+```bash
+php artisan filament-pages:make-layout LandingPageLayout
+```
+
+A layout implements `PageLayout` and returns a view:
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+use Bambamboole\FilamentPages\Layouts\PageLayout;
+
+class LandingPageLayout implements PageLayout
+{
+    public static function name(): string { return 'landing'; }
+    public static function label(): string { return 'Landing Page'; }
+
+    public function render(Request $request, Page $page): View
+    {
+        return view('layouts.landing', ['page' => $page]);
+    }
+}
+```
+
+## Frontend Rendering
+
+When routing is enabled (the default), the package registers catch-all routes that resolve pages by their slug path. Pages are rendered through their assigned layout using `{!! $page->renderBlocks() !!}`.
+
+You can also render blocks programmatically:
+
+```php
+$page = Page::where('slug_path', '/about')->first();
+echo $page->renderBlocks();
+```
+
+## Page Tree
+
+The plugin provides an interactive page tree at `/page-tree` in your Filament panel. You can:
+- Drag and drop to reorder and nest pages
+- Create, edit, and delete pages via slide-over modals
+- Publish/unpublish with datetime scheduling
+- Switch between locales
+- Preview pages before publishing
+
+Custom actions can be added to tree items:
+
+```php
+FilamentPagesPlugin::make()
+    ->treeItemActions(fn (PageTreePage $page) => [
+        Action::make('duplicate')->action(fn (array $arguments) => /* ... */),
+    ])
 ```
 
 ## Testing
@@ -77,17 +227,9 @@ composer test
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
-## Contributing
-
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](.github/SECURITY.md) on how to report security vulnerabilities.
-
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [Manuel Christlieb](https://github.com/bambamboole)
 - [All Contributors](../../contributors)
 
 ## License
