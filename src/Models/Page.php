@@ -279,14 +279,14 @@ class Page extends Model implements HasMedia, Linkable
     }
 
     /**
-     * Build a block type → class map from config.
+     * Build a block type → class map respecting plugin-registered blocks.
      *
      * @return array<string, class-string<PageBlock>>
      */
     private function getBlockMap(): array
     {
         /** @var array<class-string<PageBlock>> $blockClasses */
-        $blockClasses = config('filament-pages.blocks', []);
+        $blockClasses = app(\Bambamboole\FilamentPages\FilamentPagesPlugin::class)->getBlockClasses();
 
         $map = [];
         foreach ($blockClasses as $class) {

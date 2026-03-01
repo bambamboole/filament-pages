@@ -36,6 +36,11 @@ class FilamentPagesPlugin implements Plugin
 
     protected ?string $previewView = null;
 
+    protected bool $seoEnabled = false;
+
+    /** @var array<Closure> */
+    protected array $seoFormCallbacks = [];
+
     public function getId(): string
     {
         return 'filament-pages';
@@ -75,17 +80,23 @@ class FilamentPagesPlugin implements Plugin
     }
 
     /**
+     * @return array<class-string<PageBlock>>
+     */
+    public function getBlockClasses(): array
+    {
+        return $this->blocks !== []
+            ? $this->blocks
+            : config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
+    }
+
+    /**
      * @return array<Block>
      */
     public function getBuilderBlocks(): array
     {
-        $blockClasses = $this->blocks !== []
-            ? $this->blocks
-            : config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
-
         return array_map(
             fn (string $blockClass): Block => $blockClass::make(),
-            $blockClasses,
+            $this->getBlockClasses(),
         );
     }
 
@@ -153,6 +164,33 @@ class FilamentPagesPlugin implements Plugin
     public function getPreviewView(): string
     {
         return $this->previewView ?? 'filament-pages::preview';
+    }
+
+    public function withSeo(): static
+    {
+        $this->seoEnabled = true;
+
+        return $this;
+    }
+
+    public function isSeoEnabled(): bool
+    {
+        return $this->seoEnabled;
+    }
+
+    public function seoForm(Closure $callback): static
+    {
+        $this->seoFormCallbacks[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @return array<Closure>
+     */
+    public function getSeoFormCallbacks(): array
+    {
+        return $this->seoFormCallbacks;
     }
 
     public function treeItemActions(Closure $callback): static
