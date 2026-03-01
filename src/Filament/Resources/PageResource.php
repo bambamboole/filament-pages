@@ -5,26 +5,16 @@ declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Filament\Resources;
 
 use BackedEnum;
+use Bambamboole\FilamentPages\Filament\Forms\PageFormSchema;
 use Bambamboole\FilamentPages\Filament\Resources\PageResource\Pages;
-use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Builder;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
 
 class PageResource extends Resource
 {
@@ -38,51 +28,9 @@ class PageResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Grid::make(3)->schema([
-                    Section::make()->schema([
-                        TextInput::make('title')
-                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                if (! $get('is_slug_changed_manually') && filled($state)) {
-                                    $set('slug', Str::slug($state));
-                                }
-                            })
-                            ->live(debounce: 300)
-                            ->required(),
-                        Hidden::make('is_slug_changed_manually')
-                            ->default(false)
-                            ->dehydrated(false),
-                        Builder::make('blocks')
-                            ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
-                            ->collapsible()
-                            ->columnSpanFull(),
-                    ])->columnSpan(2),
-                    Section::make()->schema([
-                        TextInput::make('slug')
-                            ->afterStateUpdated(function (Set $set) {
-                                $set('is_slug_changed_manually', true);
-                            })
-                            ->required(),
-                        Select::make('locale')
-                            ->options(FilamentPagesPlugin::get()->getLocales())
-                            ->visible(FilamentPagesPlugin::get()->hasLocales())
-                            ->live()
-                            ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
-                        Select::make('parent_id')
-                            ->label('Parent Page')
-                            ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($record?->id, $get('locale')))
-                            ->placeholder('None (Root Page)'),
-                        DateTimePicker::make('published_at')
-                            ->label('Published At')
-                            ->native(false),
-                        Select::make('layout')
-                            ->label('Layout')
-                            ->options(FilamentPagesPlugin::get()->getLayoutOptions())
-                            ->placeholder('Default'),
-                    ])->columnSpan(1),
-                ]),
-            ]);
+        $contentSchema = PageFormSchema::make(withSlugSync: true);
+
+        return $schema->components(PageFormSchema::wrapInSeoTabs($contentSchema));
     }
 
     public static function table(Table $table): Table
