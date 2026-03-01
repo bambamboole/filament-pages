@@ -16,6 +16,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -39,43 +40,47 @@ class PageResource extends Resource
     {
         return $schema
             ->components([
-                Section::make()->schema([
-                    TextInput::make('title')
-                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                            if (! $get('is_slug_changed_manually') && filled($state)) {
-                                $set('slug', Str::slug($state));
-                            }
-                        })
-                        ->live(debounce: 300)
-                        ->required(),
-                    TextInput::make('slug')
-                        ->afterStateUpdated(function (Set $set) {
-                            $set('is_slug_changed_manually', true);
-                        })
-                        ->required(),
-                    Hidden::make('is_slug_changed_manually')
-                        ->default(false)
-                        ->dehydrated(false),
-                    Select::make('locale')
-                        ->options(FilamentPagesPlugin::get()->getLocales())
-                        ->visible(FilamentPagesPlugin::get()->hasLocales())
-                        ->live()
-                        ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
-                    Select::make('parent_id')
-                        ->label('Parent Page')
-                        ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($record?->id, $get('locale')))
-                        ->placeholder('None (Root Page)'),
-                    DateTimePicker::make('published_at')
-                        ->label('Published At')
-                        ->native(false),
-                    Select::make('layout')
-                        ->label('Layout')
-                        ->options(FilamentPagesPlugin::get()->getLayoutOptions())
-                        ->placeholder('Default'),
-                    Builder::make('blocks')
-                        ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
-                        ->collapsible()
-                        ->columnSpanFull(),
+                Grid::make(3)->schema([
+                    Section::make()->schema([
+                        TextInput::make('title')
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                if (! $get('is_slug_changed_manually') && filled($state)) {
+                                    $set('slug', Str::slug($state));
+                                }
+                            })
+                            ->live(debounce: 300)
+                            ->required(),
+                        Hidden::make('is_slug_changed_manually')
+                            ->default(false)
+                            ->dehydrated(false),
+                        Builder::make('blocks')
+                            ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
+                            ->collapsible()
+                            ->columnSpanFull(),
+                    ])->columnSpan(2),
+                    Section::make()->schema([
+                        TextInput::make('slug')
+                            ->afterStateUpdated(function (Set $set) {
+                                $set('is_slug_changed_manually', true);
+                            })
+                            ->required(),
+                        Select::make('locale')
+                            ->options(FilamentPagesPlugin::get()->getLocales())
+                            ->visible(FilamentPagesPlugin::get()->hasLocales())
+                            ->live()
+                            ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
+                        Select::make('parent_id')
+                            ->label('Parent Page')
+                            ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($record?->id, $get('locale')))
+                            ->placeholder('None (Root Page)'),
+                        DateTimePicker::make('published_at')
+                            ->label('Published At')
+                            ->native(false),
+                        Select::make('layout')
+                            ->label('Layout')
+                            ->options(FilamentPagesPlugin::get()->getLayoutOptions())
+                            ->placeholder('Default'),
+                    ])->columnSpan(1),
                 ]),
             ]);
     }

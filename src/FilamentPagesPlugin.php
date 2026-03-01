@@ -187,6 +187,11 @@ class FilamentPagesPlugin implements Plugin
             if (! $hasFilamentPeek) {
                 $panel->plugin(FilamentPeekPlugin::make());
             }
+
+            $panel->renderHook(
+                'panels::body.end',
+                fn (): string => '<style>.filament-peek-modal { z-index: 50 !important; }</style>',
+            );
         }
     }
 
