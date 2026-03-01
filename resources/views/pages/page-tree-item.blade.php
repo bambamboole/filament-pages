@@ -9,13 +9,41 @@
             </div>
             <div class="ml-2 flex items-center gap-2">
                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $page->title }}</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $page->slug_path }}</span>
+                @if($page->isPublished() && $page->frontendUrl())
+                    <a
+                        href="{{ $page->frontendUrl() }}"
+                        target="_blank"
+                        class="text-xs text-gray-500 hover:text-primary-500 hover:underline dark:text-gray-400 dark:hover:text-primary-400"
+                    >{{ $page->slug_path }}</a>
+                @else
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $page->slug_path }}</span>
+                @endif
             </div>
         </div>
         <div class="flex gap-1 items-center">
-            <x-filament::badge :color="$page->isPublished() ? 'success' : 'gray'" size="sm">
-                {{ $page->isPublished() ? 'Published' : 'Draft' }}
-            </x-filament::badge>
+            @if($page->isPublished())
+                <x-filament::badge color="success" size="sm">
+                    Published
+                </x-filament::badge>
+            @elseif($page->isScheduled())
+                <x-filament::badge
+                    tag="button"
+                    color="warning"
+                    size="sm"
+                    x-on:click="$wire.mountAction('updatePublishedAt', { pageId: {{ $page->id }} })"
+                >
+                    Scheduled
+                </x-filament::badge>
+            @else
+                <x-filament::badge
+                    tag="button"
+                    color="gray"
+                    size="sm"
+                    x-on:click="$wire.mountAction('updatePublishedAt', { pageId: {{ $page->id }} })"
+                >
+                    Draft
+                </x-filament::badge>
+            @endif
             <button
                 type="button"
                 class="text-gray-400 hover:text-primary-500 p-1"
@@ -30,6 +58,15 @@
             >
                 <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" />
             </button>
+            @foreach($this->getExtraTreeItemActions() as $extraAction)
+                <button
+                    type="button"
+                    class="text-gray-400 hover:text-primary-500 p-1"
+                    x-on:click="$wire.mountAction('{{ $extraAction->getName() }}', { pageId: {{ $page->id }} })"
+                >
+                    <x-filament::icon :icon="$extraAction->getIcon() ?? 'heroicon-m-ellipsis-horizontal'" class="h-4 w-4" />
+                </button>
+            @endforeach
         </div>
     </div>
 

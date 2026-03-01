@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('pages')->nullOnDelete();
             $table->integer('order')->default(0);
             $table->json('blocks')->nullable();
-            $table->longText('content')->nullable();
+            $table->string('layout')->nullable();
+
             $table->timestamp('published_at')->nullable();
             $table->softDeletes();
             $table->timestamps();

@@ -28,10 +28,10 @@ class PageFactory extends Factory
         ]);
     }
 
-    public function withContent(?string $content = null): static
+    public function withLayout(string $layout): static
     {
         return $this->state(fn () => [
-            'content' => $content ?? fake()->paragraphs(3, true),
+            'layout' => $layout,
         ]);
     }
 
@@ -53,6 +53,13 @@ class PageFactory extends Factory
     {
         return $this->state(fn () => [
             'published_at' => null,
+        ]);
+    }
+
+    public function scheduled(): static
+    {
+        return $this->state(fn () => [
+            'published_at' => now()->addWeek(),
         ]);
     }
 }

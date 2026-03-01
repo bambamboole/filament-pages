@@ -7,12 +7,18 @@ namespace Bambamboole\FilamentPages\Blocks;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 
-class MarkdownBlock implements PageBlock
+class MarkdownBlock extends PageBlock
 {
+    public static function name(): string
+    {
+        return 'markdown';
+    }
+
     public static function make(): Block
     {
-        return Block::make('markdown')
+        return Block::make(static::name())
             ->label('Markdown')
             ->icon(Heroicon::OutlinedDocumentText)
             ->schema([
@@ -20,5 +26,13 @@ class MarkdownBlock implements PageBlock
                     ->label('Content')
                     ->required(),
             ]);
+    }
+
+    /** {@inheritDoc} */
+    public static function mutateData(array $data, ?Model $record = null): array
+    {
+        $data['content'] = str($data['content'] ?? '')->markdown()->toString();
+
+        return $data;
     }
 }

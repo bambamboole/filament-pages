@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Models;
 
+use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -37,7 +38,33 @@ class Page extends Model implements HasMedia
 
     public function isDraft(): bool
     {
-        return ! $this->isPublished();
+        return $this->published_at === null;
+    }
+
+    public function isScheduled(): bool
+    {
+        return $this->published_at !== null && $this->published_at->isFuture();
+    }
+
+    public function frontendUrl(): ?string
+    {
+        if (! config('filament-pages.routing.enabled')) {
+            return null;
+        }
+
+        $locales = config('filament-pages.routing.locales', []);
+
+        if ($this->slug_path === '/') {
+            return ! empty($locales)
+                ? route('filament-pages.home', ['locale' => $this->locale])
+                : route('filament-pages.home');
+        }
+
+        $path = ltrim($this->slug_path, '/');
+
+        return ! empty($locales)
+            ? route('filament-pages.page', ['locale' => $this->locale, 'path' => $path])
+            : route('filament-pages.page', ['path' => $path]);
     }
 
     protected static function booted(): void
@@ -174,6 +201,53 @@ class Page extends Model implements HasMedia
                 static::flattenTreeOptions($item->children, $options, $depth + 1, $excludeId);
             }
         }
+    }
+
+    /**
+     * Render a single block to HTML.
+     *
+     * @param  array{type: string, data: array<string, mixed>}  $block
+     */
+    public function renderBlock(array $block): string
+    {
+        $blockMap = $this->getBlockMap();
+        $blockClass = $blockMap[$block['type']] ?? null;
+
+        if (! $blockClass) {
+            return '';
+        }
+
+        $data = $blockClass::mutateData($block['data'] ?? [], $this);
+
+        return view($blockClass::viewName(), $data)->render();
+    }
+
+    /**
+     * Render all blocks to HTML.
+     */
+    public function renderBlocks(): string
+    {
+        return collect($this->blocks ?? [])
+            ->map(fn (array $block): string => $this->renderBlock($block))
+            ->implode('');
+    }
+
+    /**
+     * Build a block type → class map from config.
+     *
+     * @return array<string, class-string<PageBlock>>
+     */
+    private function getBlockMap(): array
+    {
+        /** @var array<class-string<PageBlock>> $blockClasses */
+        $blockClasses = config('filament-pages.blocks', []);
+
+        $map = [];
+        foreach ($blockClasses as $class) {
+            $map[$class::name()] = $class;
+        }
+
+        return $map;
     }
 
     public function cascadeSlugPath(): void

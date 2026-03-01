@@ -7,17 +7,29 @@ use Bambamboole\FilamentPages\Blocks\MarkdownBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
 use Bambamboole\FilamentPages\Filament\Resources\PageResource;
+use Bambamboole\FilamentPages\Layouts\PageLayout;
+use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Panel;
+use Filament\Resources\Resource;
 
 class FilamentPagesPlugin implements Plugin
 {
+    /** @var class-string<resource>|null */
+    protected ?string $resource = null;
+
     /** @var array<string, string> */
     protected array $locales = [];
 
     /** @var array<class-string<PageBlock>> */
     protected array $blocks = [];
+
+    /** @var array<class-string<PageLayout>> */
+    protected array $layouts = [];
+
+    /** @var array<Closure> */
+    protected array $treeItemActionCallbacks = [];
 
     public function getId(): string
     {
@@ -64,7 +76,7 @@ class FilamentPagesPlugin implements Plugin
     {
         $blockClasses = $this->blocks !== []
             ? $this->blocks
-            : [MarkdownBlock::class, ImageBlock::class];
+            : config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
 
         return array_map(
             fn (string $blockClass): Block => $blockClass::make(),
@@ -72,11 +84,74 @@ class FilamentPagesPlugin implements Plugin
         );
     }
 
+    /**
+     * @param  array<class-string<PageLayout>>  $layouts
+     */
+    public function layouts(array $layouts): static
+    {
+        $this->layouts = $layouts;
+
+        return $this;
+    }
+
+    /**
+     * @return array<class-string<PageLayout>>
+     */
+    public function getLayouts(): array
+    {
+        return $this->layouts !== []
+            ? $this->layouts
+            : config('filament-pages.layouts', []);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getLayoutOptions(): array
+    {
+        return collect($this->getLayouts())
+            ->mapWithKeys(fn (string $class): array => [$class::name() => $class::label()])
+            ->toArray();
+    }
+
+    /**
+     * @param  class-string<resource>  $resource
+     */
+    public function resource(string $resource): static
+    {
+        $this->resource = $resource;
+
+        return $this;
+    }
+
+    /**
+     * @return class-string<resource>
+     */
+    public function getResource(): string
+    {
+        return $this->resource ?? config('filament-pages.resource', PageResource::class);
+    }
+
+    public function treeItemActions(Closure $callback): static
+    {
+        $this->treeItemActionCallbacks[] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * @return array<Closure>
+     */
+    public function getTreeItemActionCallbacks(): array
+    {
+        return $this->treeItemActionCallbacks;
+    }
+
     public function register(Panel $panel): void
     {
         $panel
             ->resources([
-                PageResource::class,
+                $this->getResource(),
             ])
             ->pages([
                 PageTreePage::class,

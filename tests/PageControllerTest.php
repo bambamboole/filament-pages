@@ -3,10 +3,11 @@
 use Bambamboole\FilamentPages\Models\Page;
 
 it('shows a published page at its slug path', function () {
-    Page::factory()->published()->create([
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => 'About content']],
+    ])->create([
         'title' => 'About Us',
         'slug' => 'about',
-        'content' => 'About content',
     ]);
 
     $this->get('/about')
@@ -26,10 +27,11 @@ it('returns 404 for a non-existent path', function () {
 });
 
 it('shows the homepage at the root path', function () {
-    $page = Page::factory()->published()->create([
+    $page = Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => 'Welcome home']],
+    ])->create([
         'title' => 'Home',
         'slug' => 'home',
-        'content' => 'Welcome home',
     ]);
 
     $page->slug_path = '/';
@@ -62,7 +64,6 @@ it('shows nested pages at their full slug path', function () {
     Page::factory()->published()->withParent($parent)->create([
         'title' => 'Our Team',
         'slug' => 'team',
-        'content' => 'Team content',
     ]);
 
     $this->get('/about/team')

@@ -31,11 +31,12 @@ beforeEach(function () {
 });
 
 it('shows a localized page at /{locale}/{path}', function () {
-    Page::factory()->published()->create([
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => 'English about']],
+    ])->create([
         'title' => 'About',
         'slug' => 'about',
         'locale' => 'en',
-        'content' => 'English about',
     ]);
 
     $this->get('/en/about')
@@ -45,11 +46,12 @@ it('shows a localized page at /{locale}/{path}', function () {
 });
 
 it('shows the localized homepage at /{locale}', function () {
-    $page = Page::factory()->published()->create([
+    $page = Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => 'Willkommen']],
+    ])->create([
         'title' => 'Startseite',
         'slug' => 'startseite',
         'locale' => 'de',
-        'content' => 'Willkommen',
     ]);
 
     $page->slug_path = '/';

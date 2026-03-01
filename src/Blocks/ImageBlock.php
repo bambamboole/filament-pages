@@ -11,12 +11,19 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
 
-class ImageBlock implements PageBlock
+class ImageBlock extends PageBlock
 {
+    public static function name(): string
+    {
+        return 'image';
+    }
+
     public static function make(): Block
     {
-        return Block::make('image')
+        return Block::make(static::name())
             ->label('Image')
             ->icon(Heroicon::OutlinedPhoto)
             ->schema([
@@ -36,5 +43,20 @@ class ImageBlock implements PageBlock
                 TextInput::make('alt')
                     ->label('Alt Text'),
             ]);
+    }
+
+    /** {@inheritDoc} */
+    public static function mutateData(array $data, ?Model $record = null): array
+    {
+        $media = null;
+
+        if ($record instanceof HasMedia && ! empty($data['image_collection_id'])) {
+            $media = $record->getMedia($data['image_collection_id'])->first();
+        }
+
+        return [
+            'image' => $media,
+            'alt' => $data['alt'] ?? '',
+        ];
     }
 }

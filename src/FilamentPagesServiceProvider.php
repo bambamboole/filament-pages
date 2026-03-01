@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages;
 
-use Bambamboole\FilamentPages\Commands\FilamentPagesCommand;
+use Bambamboole\FilamentPages\Commands\MakeBlockCommand;
+use Bambamboole\FilamentPages\Commands\MakeLayoutCommand;
 use Bambamboole\FilamentPages\Testing\TestsFilamentPages;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
@@ -93,7 +94,8 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            FilamentPagesCommand::class,
+            MakeBlockCommand::class,
+            MakeLayoutCommand::class,
         ];
     }
 

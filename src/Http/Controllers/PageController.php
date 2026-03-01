@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Http\Controllers;
 
+use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -24,6 +25,23 @@ class PageController
             ->where('published_at', '<=', now())
             ->firstOrFail();
 
-        return view(config('filament-pages.routing.layout'), ['page' => $page]);
+        $layout = $this->resolveLayout($page->layout);
+
+        return $layout->render($request, $page);
+    }
+
+    private function resolveLayout(?string $layoutKey): PageLayout
+    {
+        /** @var array<class-string<PageLayout>> $layoutClasses */
+        $layoutClasses = config('filament-pages.layouts', []);
+
+        $map = [];
+        foreach ($layoutClasses as $class) {
+            $map[$class::name()] = $class;
+        }
+
+        $layoutClass = $map[$layoutKey] ?? reset($layoutClasses) ?: $layoutClasses[0];
+
+        return new $layoutClass;
     }
 }

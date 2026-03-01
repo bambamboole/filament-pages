@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Filament\Pages;
 
 use BackedEnum;
-use Bambamboole\FilamentPages\Filament\Resources\PageResource;
 use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\Action;
 use Filament\Actions\SelectAction;
 use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page as FilamentPage;
@@ -90,6 +90,8 @@ class PageTreePage extends FilamentPage
                     'slug' => $page->slug,
                     'locale' => $page->locale,
                     'parent_id' => $page->parent_id,
+                    'published_at' => $page->published_at,
+                    'layout' => $page->layout,
                     'blocks' => $page->blocks ?? [],
                 ]);
             })
@@ -107,6 +109,13 @@ class PageTreePage extends FilamentPage
                     ->label('Parent Page')
                     ->options(fn (Get $get) => Page::getNestedOptions($arguments['pageId'] ?? null, $get('locale')))
                     ->placeholder('None (Root Page)'),
+                DateTimePicker::make('published_at')
+                    ->label('Published At')
+                    ->native(false),
+                Select::make('layout')
+                    ->label('Layout')
+                    ->options(FilamentPagesPlugin::get()->getLayoutOptions())
+                    ->placeholder('Default'),
                 Builder::make('blocks')
                     ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
                     ->collapsible()
@@ -125,7 +134,15 @@ class PageTreePage extends FilamentPage
 
                 $page->update($data);
                 $form->model($page)->saveRelationships();
-            });
+            })
+            ->extraModalFooterActions(fn (array $arguments): array => [
+                Action::make('visitPage')
+                    ->label('Visit Page')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->color('gray')
+                    ->url(fn (): ?string => Page::find($arguments['pageId'])?->frontendUrl(), shouldOpenInNewTab: true)
+                    ->visible(fn (): bool => (bool) Page::find($arguments['pageId'])?->isPublished()),
+            ]);
     }
 
     public function deletePageAction(): Action
@@ -137,6 +154,47 @@ class PageTreePage extends FilamentPage
                 $page = Page::find($arguments['pageId']);
                 $page?->delete();
             });
+    }
+
+    public function updatePublishedAtAction(): Action
+    {
+        return Action::make('updatePublishedAt')
+            ->modalHeading('Set Publication Date')
+            ->modalWidth(Width::Medium)
+            ->mountUsing(function (Schema $form, array $arguments): void {
+                $page = Page::find($arguments['pageId']);
+
+                if (! $page) {
+                    return;
+                }
+
+                $form->fill([
+                    'published_at' => $page->published_at,
+                ]);
+            })
+            ->schema([
+                DateTimePicker::make('published_at')
+                    ->label('Published At')
+                    ->native(false),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                $page = Page::find($arguments['pageId']);
+                $page?->update(['published_at' => $data['published_at']]);
+            });
+    }
+
+    /**
+     * @return array<Action>
+     */
+    public function getExtraTreeItemActions(): array
+    {
+        $actions = [];
+
+        foreach (FilamentPagesPlugin::get()->getTreeItemActionCallbacks() as $callback) {
+            $actions = array_merge($actions, $callback($this));
+        }
+
+        return $actions;
     }
 
     /**
@@ -187,6 +245,13 @@ class PageTreePage extends FilamentPage
                     ->label('Parent Page')
                     ->options(fn (Get $get) => Page::getNestedOptions(locale: $get('locale')))
                     ->placeholder('None (Root Page)'),
+                DateTimePicker::make('published_at')
+                    ->label('Published At')
+                    ->native(false),
+                Select::make('layout')
+                    ->label('Layout')
+                    ->options(FilamentPagesPlugin::get()->getLayoutOptions())
+                    ->placeholder('Default'),
                 Builder::make('blocks')
                     ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
                     ->collapsible()
@@ -204,7 +269,7 @@ class PageTreePage extends FilamentPage
         $actions[] = Action::make('tableView')
             ->label('Table View')
             ->icon(Heroicon::OutlinedTableCells)
-            ->url(PageResource::getUrl());
+            ->url(FilamentPagesPlugin::get()->getResource()::getUrl());
 
         return $actions;
     }

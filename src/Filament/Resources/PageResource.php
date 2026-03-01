@@ -11,6 +11,7 @@ use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Builder;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -64,6 +65,13 @@ class PageResource extends Resource
                         ->label('Parent Page')
                         ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($record?->id, $get('locale')))
                         ->placeholder('None (Root Page)'),
+                    DateTimePicker::make('published_at')
+                        ->label('Published At')
+                        ->native(false),
+                    Select::make('layout')
+                        ->label('Layout')
+                        ->options(FilamentPagesPlugin::get()->getLayoutOptions())
+                        ->placeholder('Default'),
                     Builder::make('blocks')
                         ->blocks(FilamentPagesPlugin::get()->getBuilderBlocks())
                         ->collapsible()

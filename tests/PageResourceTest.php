@@ -68,3 +68,17 @@ it('can list pages', function () {
     livewire(ListPages::class)
         ->assertCanSeeTableRecords($pages);
 });
+
+it('shows visit page action for published pages on edit page', function () {
+    $page = Page::factory()->published()->create();
+
+    livewire(EditPage::class, ['record' => $page->getRouteKey()])
+        ->assertActionVisible('visitPage');
+});
+
+it('hides visit page action for draft pages on edit page', function () {
+    $page = Page::factory()->draft()->create();
+
+    livewire(EditPage::class, ['record' => $page->getRouteKey()])
+        ->assertActionHidden('visitPage');
+});

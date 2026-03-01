@@ -83,9 +83,55 @@ it('stores blocks as array', function () {
     expect($page->fresh()->blocks)->toBe($blocks);
 });
 
-it('allows nullable content and blocks', function () {
-    $page = Page::factory()->create(['content' => null, 'blocks' => null]);
+it('allows nullable blocks', function () {
+    $page = Page::factory()->create(['blocks' => null]);
 
-    expect($page->fresh()->content)->toBeNull()
-        ->and($page->fresh()->blocks)->toBeNull();
+    expect($page->fresh()->blocks)->toBeNull();
+});
+
+it('identifies a draft page when published_at is null', function () {
+    $page = Page::factory()->draft()->create();
+
+    expect($page->isDraft())->toBeTrue()
+        ->and($page->isScheduled())->toBeFalse()
+        ->and($page->isPublished())->toBeFalse();
+});
+
+it('identifies a scheduled page when published_at is in the future', function () {
+    $page = Page::factory()->scheduled()->create();
+
+    expect($page->isScheduled())->toBeTrue()
+        ->and($page->isDraft())->toBeFalse()
+        ->and($page->isPublished())->toBeFalse();
+});
+
+it('identifies a published page when published_at is in the past', function () {
+    $page = Page::factory()->published()->create();
+
+    expect($page->isPublished())->toBeTrue()
+        ->and($page->isDraft())->toBeFalse()
+        ->and($page->isScheduled())->toBeFalse();
+});
+
+it('generates frontend URL for a published page', function () {
+    $page = Page::factory()->published()->create(['slug' => 'about']);
+
+    expect($page->frontendUrl())->toBe(route('filament-pages.page', ['path' => 'about']));
+});
+
+it('generates frontend URL for the homepage', function () {
+    $page = Page::factory()->published()->create(['slug' => 'home']);
+
+    $page->slug_path = '/';
+    $page->saveQuietly();
+
+    expect($page->fresh()->frontendUrl())->toBe(route('filament-pages.home'));
+});
+
+it('returns null frontend URL when routing is disabled', function () {
+    config()->set('filament-pages.routing.enabled', false);
+
+    $page = Page::factory()->published()->create(['slug' => 'about']);
+
+    expect($page->frontendUrl())->toBeNull();
 });

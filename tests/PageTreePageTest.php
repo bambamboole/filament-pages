@@ -58,3 +58,55 @@ it('nests pages and updates slug_path via reorderTree', function () {
     expect($child->fresh()->parent_id)->toBe($parent->id)
         ->and($child->fresh()->slug_path)->toBe('/about/team');
 });
+
+it('shows Draft badge for unpublished pages', function () {
+    Page::factory()->draft()->create(['title' => 'Draft Page']);
+
+    livewire(PageTreePage::class)
+        ->assertSee('Draft Page')
+        ->assertSee('Draft');
+});
+
+it('shows Published badge for published pages', function () {
+    Page::factory()->published()->create(['title' => 'Live Page']);
+
+    livewire(PageTreePage::class)
+        ->assertSee('Live Page')
+        ->assertSee('Published');
+});
+
+it('shows Scheduled badge for scheduled pages', function () {
+    Page::factory()->scheduled()->create(['title' => 'Future Page']);
+
+    livewire(PageTreePage::class)
+        ->assertSee('Future Page')
+        ->assertSee('Scheduled');
+});
+
+it('can update published_at via updatePublishedAt action', function () {
+    $page = Page::factory()->draft()->create(['title' => 'Draft Page']);
+
+    $publishDate = now()->subHour()->format('Y-m-d H:i:s');
+
+    livewire(PageTreePage::class)
+        ->callAction('updatePublishedAt', data: [
+            'published_at' => $publishDate,
+        ], arguments: [
+            'pageId' => $page->id,
+        ]);
+
+    expect($page->fresh()->published_at->format('Y-m-d H:i:s'))->toBe($publishDate);
+});
+
+it('can clear published_at via updatePublishedAt action', function () {
+    $page = Page::factory()->published()->create(['title' => 'Published Page']);
+
+    livewire(PageTreePage::class)
+        ->callAction('updatePublishedAt', data: [
+            'published_at' => null,
+        ], arguments: [
+            'pageId' => $page->id,
+        ]);
+
+    expect($page->fresh()->published_at)->toBeNull();
+});
