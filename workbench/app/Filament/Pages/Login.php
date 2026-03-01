@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Workbench\App\Filament\Pages;
 
-use Filament\Auth\Pages\Login as BasePage;
+use Filament\Auth\Pages\Login as BaseLogin;
 
-class Login extends BasePage
+class Login extends BaseLogin
 {
     public function mount(): void
     {

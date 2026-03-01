@@ -2,6 +2,8 @@
 
 namespace Bambamboole\FilamentPages;
 
+use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
+use Bambamboole\FilamentPages\Filament\Resources\PageResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
@@ -14,7 +16,13 @@ class FilamentPagesPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        //
+        $panel
+            ->resources([
+                PageResource::class,
+            ])
+            ->pages([
+                PageTreePage::class,
+            ]);
     }
 
     public function boot(Panel $panel): void

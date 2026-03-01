@@ -1,0 +1,73 @@
+/*
+ * Hand-crafted utility classes for filament-pages.
+ *
+ * - No @layer declarations (unlayered CSS beats all layered CSS).
+ * - References Filament's CSS custom properties so colours follow the panel theme.
+ * - Normal class selectors give proper specificity (no :where() wrapper).
+ */
+
+/* ── Layout ── */
+
+.flex       { display: flex; }
+.items-center   { align-items: center; }
+.justify-between { justify-content: space-between; }
+
+/* ── Spacing ── */
+
+.gap-1  { gap: 0.25rem; }
+.gap-2  { gap: 0.5rem; }
+.m-2    { margin: 0.5rem; }
+.mt-2   { margin-top: 0.5rem; }
+.ml-2   { margin-left: 0.5rem; }
+.p-1    { padding: 0.25rem; }
+.pr-2   { padding-right: 0.5rem; }
+.py-4   { padding-top: 1rem; padding-bottom: 1rem; }
+
+.space-y-2 > * + * { margin-top: 0.5rem; }
+
+/* ── Sizing ── */
+
+.h-4 { height: 1rem; }
+.w-4 { width: 1rem; }
+.h-5 { height: 1.25rem; }
+.w-5 { width: 1.25rem; }
+
+/* ── Typography ── */
+
+.text-xs { font-size: 0.75rem; line-height: 1rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.font-medium { font-weight: 500; }
+.text-center { text-align: center; }
+
+/* ── Colors (reference Filament custom properties) ── */
+
+.text-gray-400 { color: var(--color-gray-400); }
+.text-gray-500 { color: var(--color-gray-500); }
+.text-gray-900 { color: var(--color-gray-900); }
+
+.bg-white { background-color: #fff; }
+
+.border           { border: 1px solid; }
+.border-r         { border-right: 1px solid; }
+.border-gray-200  { border-color: var(--color-gray-200); }
+
+/* ── Border radius & shadow ── */
+
+.rounded-lg { border-radius: 0.5rem; }
+.shadow-sm  { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
+
+/* ── Cursor ── */
+
+.cursor-grab { cursor: grab; }
+
+/* ── Hover states ── */
+
+.hover\:text-primary-500:hover { color: var(--primary-500); }
+.hover\:text-danger-500:hover  { color: var(--danger-500); }
+
+/* ── Dark mode ── */
+
+.dark\:bg-gray-800:is(.dark *)     { background-color: var(--color-gray-800); }
+.dark\:border-gray-700:is(.dark *)  { border-color: var(--color-gray-700); }
+.dark\:text-gray-400:is(.dark *)    { color: var(--color-gray-400); }
+.dark\:text-white:is(.dark *)       { color: #fff; }

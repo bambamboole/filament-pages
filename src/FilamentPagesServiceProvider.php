@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Commands\FilamentPagesCommand;
 use Bambamboole\FilamentPages\Testing\TestsFilamentPages;
-use Filament\Support\Assets\Asset;
+use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
@@ -54,15 +57,12 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        // Asset Registration
         FilamentAsset::register(
-            $this->getAssets(),
-            $this->getAssetPackageName()
-        );
-
-        FilamentAsset::registerScriptData(
-            $this->getScriptData(),
-            $this->getAssetPackageName()
+            [
+                Css::make('filament-pages', __DIR__ . '/../resources/dist/css/filament-pages.css'),
+                Js::make('filament-pages', __DIR__ . '/../resources/dist/js/filament-pages.js'),
+            ],
+            'bambamboole/filament-pages'
         );
 
         // Icon Registration
@@ -70,7 +70,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
 
         // Handle Stubs
         if (app()->runningInConsole()) {
-            foreach (app(Filesystem::class)->files(__DIR__.'/../stubs/') as $file) {
+            foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
                 $this->publishes([
                     $file->getRealPath() => base_path("stubs/filament-pages/{$file->getFilename()}"),
                 ], 'filament-pages-stubs');
@@ -87,14 +87,6 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * @return array<Asset>
-     */
-    protected function getAssets(): array
-    {
-        return [];
-    }
-
-    /**
      * @return array<class-string>
      */
     protected function getCommands(): array
@@ -108,22 +100,6 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
      * @return array<string>
      */
     protected function getIcons(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return array<string>
-     */
-    protected function getRoutes(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function getScriptData(): array
     {
         return [];
     }
