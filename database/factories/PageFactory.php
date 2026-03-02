@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bambamboole\FilamentPages\Database\Factories;
 
 use Bambamboole\FilamentPages\Models\Page;

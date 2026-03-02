@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
@@ -123,9 +122,9 @@ class Page extends Model implements HasMedia, Linkable
         });
 
         static::deleting(function (Page $page) {
-            DB::transaction(function () use ($page) {
-                $page->children()->each(fn (Page $child) => $child->delete());
-            });
+            if ($page->children()->exists()) {
+                throw new \LogicException("Cannot delete page [{$page->id}] because it has child pages. Move or delete children first.");
+            }
         });
     }
 

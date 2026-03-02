@@ -164,7 +164,9 @@ class PageTreePage extends FilamentPage
             ->requiresConfirmation()
             ->color('danger')
             ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
-            ->visible(fn (?Page $record): bool => $this->authorizePageAction('delete', $record))
+            ->visible(fn (?Page $record): bool => $record
+                && ! $record->children()->exists()
+                && $this->authorizePageAction('delete', $record))
             ->action(function (?Page $record): void {
                 if (! $record) {
                     return;

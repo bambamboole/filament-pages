@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('slug');
             $table->string('slug_path');
             $table->string('locale')->nullable();
-            $table->foreignId('parent_id')->nullable()->constrained('pages')->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('pages')->restrictOnDelete();
             $table->integer('order')->default(0);
             $table->json('blocks')->nullable();
             $table->string('layout')->nullable();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Blocks\ImageBlock;
