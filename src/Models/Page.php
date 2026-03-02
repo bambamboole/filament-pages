@@ -297,8 +297,10 @@ class Page extends Model implements HasMedia, Linkable
 
     public function cascadeSlugPath(): void
     {
-        $this->children()->each(function (Page $child) {
-            $child->slug_path = $child->computeSlugPath();
+        $parentPath = $this->slug_path;
+
+        $this->children()->each(function (Page $child) use ($parentPath) {
+            $child->slug_path = $parentPath . '/' . $child->slug;
             $child->saveQuietly();
 
             $child->cascadeSlugPath();
