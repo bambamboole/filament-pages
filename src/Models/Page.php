@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
@@ -122,7 +123,9 @@ class Page extends Model implements HasMedia, Linkable
         });
 
         static::deleting(function (Page $page) {
-            $page->children()->each(fn (Page $child) => $child->delete());
+            DB::transaction(function () use ($page) {
+                $page->children()->each(fn (Page $child) => $child->delete());
+            });
         });
     }
 
