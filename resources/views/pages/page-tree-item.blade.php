@@ -51,13 +51,23 @@
             >
                 <x-filament::icon icon="heroicon-m-pencil-square" class="h-4 w-4" />
             </button>
-            <button
-                type="button"
-                class="text-gray-400 hover:text-danger-500 p-1"
-                x-on:click="$wire.mountAction('deletePage', { pageId: {{ $page->id }} })"
-            >
-                <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" />
-            </button>
+            @if($page->children->isEmpty())
+                <button
+                    type="button"
+                    class="text-gray-400 hover:text-danger-500 p-1"
+                    x-on:click="$wire.mountAction('deletePage', { pageId: {{ $page->id }} })"
+                >
+                    <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" />
+                </button>
+            @else
+                <x-filament::icon-button
+                    icon="heroicon-m-trash"
+                    color="gray"
+                    size="sm"
+                    disabled
+                    tooltip="Cannot delete — page has children"
+                />
+            @endif
             @foreach($this->getExtraTreeItemActions() as $extraAction)
                 <button
                     type="button"

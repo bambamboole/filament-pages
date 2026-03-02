@@ -11,6 +11,7 @@ use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\Action;
 use Filament\Actions\SelectAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page as FilamentPage;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -133,6 +134,11 @@ class PageTreePage extends FilamentPage
 
                 $record->update($data);
                 $form->model($record)->saveRelationships();
+
+                Notification::make()
+                    ->title('Page updated')
+                    ->success()
+                    ->send();
             })
             ->extraModalFooterActions(fn (?Page $record): array => array_filter([
                 FilamentPagesPlugin::get()->isPreviewEnabled() && $record
@@ -174,6 +180,11 @@ class PageTreePage extends FilamentPage
 
                 $this->authorizePageAction('delete', $record, enforce: true);
                 $record->delete();
+
+                Notification::make()
+                    ->title('Page deleted')
+                    ->success()
+                    ->send();
             });
     }
 
@@ -205,6 +216,11 @@ class PageTreePage extends FilamentPage
 
                 $this->authorizePageAction('update', $record, enforce: true);
                 $record->update(['published_at' => $data['published_at']]);
+
+                Notification::make()
+                    ->title('Publication date updated')
+                    ->success()
+                    ->send();
             });
     }
 
@@ -247,6 +263,11 @@ class PageTreePage extends FilamentPage
                     $page->saveQuietly();
                 }
             });
+
+        Notification::make()
+            ->title('Page order updated')
+            ->success()
+            ->send();
     }
 
     protected function getHeaderActions(): array
@@ -280,6 +301,11 @@ class PageTreePage extends FilamentPage
 
                 $page = $model::create($data);
                 $form->model($page)->saveRelationships();
+
+                Notification::make()
+                    ->title('Page created')
+                    ->success()
+                    ->send();
             })
             ->extraModalFooterActions(fn (): array => array_filter([
                 FilamentPagesPlugin::get()->isPreviewEnabled()
