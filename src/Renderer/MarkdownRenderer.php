@@ -93,13 +93,40 @@ class MarkdownRenderer
 
     private function extractToc(string &$html, string $tocClass): string
     {
-        $pattern = '/<ul class="' . preg_quote($tocClass, '/') . '">(.*?)<\/ul>/s';
+        $openTag = '<ul class="' . $tocClass . '">';
+        $startPos = strpos($html, $openTag);
 
-        if (preg_match($pattern, $html, $matches)) {
-            $tocHtml = $matches[0];
-            $html = str_replace($tocHtml, '', $html);
+        if ($startPos === false) {
+            return '';
+        }
 
-            return $tocHtml;
+        // Walk through the HTML tracking nested <ul> depth to find the matching </ul>
+        $depth = 0;
+        $pos = $startPos;
+        $len = strlen($html);
+
+        while ($pos < $len) {
+            $nextOpen = strpos($html, '<ul', $pos + 1);
+            $nextClose = strpos($html, '</ul>', $pos + 1);
+
+            if ($nextClose === false) {
+                break;
+            }
+
+            if ($nextOpen !== false && $nextOpen < $nextClose) {
+                $depth++;
+                $pos = $nextOpen;
+            } else {
+                if ($depth === 0) {
+                    $endPos = $nextClose + strlen('</ul>');
+                    $tocHtml = substr($html, $startPos, $endPos - $startPos);
+                    $html = substr($html, 0, $startPos) . substr($html, $endPos);
+
+                    return $tocHtml;
+                }
+                $depth--;
+                $pos = $nextClose;
+            }
         }
 
         return '';
