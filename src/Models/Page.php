@@ -288,7 +288,10 @@ class Page extends Model implements HasMedia, Linkable
     private function getBlockMap(): array
     {
         /** @var array<class-string<PageBlock>> $blockClasses */
-        $blockClasses = app(\Bambamboole\FilamentPages\FilamentPagesPlugin::class)->getBlockClasses();
+        $blockClasses = config('filament-pages.blocks', [
+            \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
+            \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
+        ]);
 
         $map = [];
         foreach ($blockClasses as $class) {

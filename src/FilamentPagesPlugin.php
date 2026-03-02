@@ -23,12 +23,6 @@ class FilamentPagesPlugin implements Plugin
     /** @var array<string, string> */
     protected array $locales = [];
 
-    /** @var array<class-string<PageBlock>> */
-    protected array $blocks = [];
-
-    /** @var array<class-string<PageLayout>> */
-    protected array $layouts = [];
-
     /** @var array<Closure> */
     protected array $treeItemActionCallbacks = [];
 
@@ -70,23 +64,11 @@ class FilamentPagesPlugin implements Plugin
     }
 
     /**
-     * @param  array<class-string<PageBlock>>  $blocks
-     */
-    public function blocks(array $blocks): static
-    {
-        $this->blocks = $blocks;
-
-        return $this;
-    }
-
-    /**
      * @return array<class-string<PageBlock>>
      */
     public function getBlockClasses(): array
     {
-        return $this->blocks !== []
-            ? $this->blocks
-            : config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
+        return config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
     }
 
     /**
@@ -101,23 +83,11 @@ class FilamentPagesPlugin implements Plugin
     }
 
     /**
-     * @param  array<class-string<PageLayout>>  $layouts
-     */
-    public function layouts(array $layouts): static
-    {
-        $this->layouts = $layouts;
-
-        return $this;
-    }
-
-    /**
      * @return array<class-string<PageLayout>>
      */
     public function getLayouts(): array
     {
-        return $this->layouts !== []
-            ? $this->layouts
-            : config('filament-pages.layouts', []);
+        return config('filament-pages.layouts', []);
     }
 
     /**
