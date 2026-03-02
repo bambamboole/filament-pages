@@ -16,6 +16,7 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Pboivin\FilamentPeek\Facades\Peek;
 use Pboivin\FilamentPeek\Pages\Concerns\HasPreviewModal;
@@ -92,6 +93,7 @@ class PageTreePage extends FilamentPage
             ->slideOver()
             ->modalWidth(Width::SevenExtraLarge)
             ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, array $arguments): void {
                 $page = Page::find($arguments['pageId']);
 
@@ -118,6 +120,8 @@ class PageTreePage extends FilamentPage
                 if (! $page) {
                     return;
                 }
+
+                $this->authorizePageAction('update', $page, enforce: true);
 
                 if (empty($data['slug']) && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
@@ -159,9 +163,17 @@ class PageTreePage extends FilamentPage
         return Action::make('deletePage')
             ->requiresConfirmation()
             ->color('danger')
+            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->visible(fn (?Page $record): bool => $this->authorizePageAction('delete', $record))
             ->action(function (array $arguments): void {
                 $page = Page::find($arguments['pageId']);
-                $page?->delete();
+
+                if (! $page) {
+                    return;
+                }
+
+                $this->authorizePageAction('delete', $page, enforce: true);
+                $page->delete();
             });
     }
 
@@ -170,6 +182,8 @@ class PageTreePage extends FilamentPage
         return Action::make('updatePublishedAt')
             ->modalHeading('Set Publication Date')
             ->modalWidth(Width::Medium)
+            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, array $arguments): void {
                 $page = Page::find($arguments['pageId']);
 
@@ -188,7 +202,13 @@ class PageTreePage extends FilamentPage
             ])
             ->action(function (array $data, array $arguments): void {
                 $page = Page::find($arguments['pageId']);
-                $page?->update(['published_at' => $data['published_at']]);
+
+                if (! $page) {
+                    return;
+                }
+
+                $this->authorizePageAction('update', $page, enforce: true);
+                $page->update(['published_at' => $data['published_at']]);
             });
     }
 
@@ -211,6 +231,10 @@ class PageTreePage extends FilamentPage
      */
     public function reorderTree(array $tree): void
     {
+        if (Gate::getPolicyFor(Page::class)) {
+            Gate::authorize('reorder', Page::class);
+        }
+
         $order = 0;
         $this->persistTree($tree, null, $order);
 
@@ -238,6 +262,7 @@ class PageTreePage extends FilamentPage
             ->label('New Page')
             ->slideOver()
             ->modalWidth(Width::SevenExtraLarge)
+            ->visible(fn (): bool => $this->authorizePageAction('create', Page::class))
             ->fillForm([
                 'locale' => $this->locale,
             ])
@@ -245,6 +270,8 @@ class PageTreePage extends FilamentPage
                 PageFormSchema::make(),
             ))
             ->action(function (array $data, Schema $form): void {
+                $this->authorizePageAction('create', Page::class, enforce: true);
+
                 if (empty($data['slug']) && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
                 }
@@ -289,5 +316,24 @@ class PageTreePage extends FilamentPage
                 $this->persistTree($item['children'], $item['id'], $order);
             }
         }
+    }
+
+    /**
+     * Check authorization for a page action. Returns true when no policy is registered.
+     * When enforce is true, throws AuthorizationException instead of returning false.
+     */
+    private function authorizePageAction(string $ability, Page | string $target, bool $enforce = false): bool
+    {
+        if (! Gate::getPolicyFor(Page::class)) {
+            return true;
+        }
+
+        if ($enforce) {
+            Gate::authorize($ability, $target);
+
+            return true;
+        }
+
+        return Gate::allows($ability, $target);
     }
 }
