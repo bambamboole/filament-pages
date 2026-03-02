@@ -94,67 +94,59 @@ class PageTreePage extends FilamentPage
             ->modalWidth(Width::SevenExtraLarge)
             ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
-            ->mountUsing(function (Schema $form, array $arguments): void {
-                $page = Page::find($arguments['pageId']);
-
-                if (! $page) {
+            ->mountUsing(function (Schema $form, ?Page $record): void {
+                if (! $record) {
                     return;
                 }
 
                 $form->fill([
-                    'title' => $page->title,
-                    'slug' => $page->slug,
-                    'locale' => $page->locale,
-                    'parent_id' => $page->parent_id,
-                    'published_at' => $page->published_at,
-                    'layout' => $page->layout,
-                    'blocks' => $page->blocks ?? [],
+                    'title' => $record->title,
+                    'slug' => $record->slug,
+                    'locale' => $record->locale,
+                    'parent_id' => $record->parent_id,
+                    'published_at' => $record->published_at,
+                    'layout' => $record->layout,
+                    'blocks' => $record->blocks ?? [],
                 ]);
             })
             ->schema(fn (array $arguments): array => PageFormSchema::wrapInSeoTabs(
                 PageFormSchema::make(excludePageId: $arguments['pageId'] ?? null),
             ))
-            ->action(function (array $data, array $arguments, Schema $form): void {
-                $page = Page::find($arguments['pageId']);
-
-                if (! $page) {
+            ->action(function (array $data, ?Page $record, Schema $form): void {
+                if (! $record) {
                     return;
                 }
 
-                $this->authorizePageAction('update', $page, enforce: true);
+                $this->authorizePageAction('update', $record, enforce: true);
 
                 if (empty($data['slug']) && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
                 }
 
-                $page->update($data);
-                $form->model($page)->saveRelationships();
+                $record->update($data);
+                $form->model($record)->saveRelationships();
             })
-            ->extraModalFooterActions(fn (array $arguments): array => array_filter([
-                FilamentPagesPlugin::get()->isPreviewEnabled()
+            ->extraModalFooterActions(fn (?Page $record): array => array_filter([
+                FilamentPagesPlugin::get()->isPreviewEnabled() && $record
                     ? Action::make('previewEditPage')
                         ->label(__('filament-peek::ui.preview-action-label'))
                         ->color('gray')
-                        ->action(function (array $data) use ($arguments): void {
-                            $page = Page::find($arguments['pageId']);
-
-                            if (! $page) {
-                                return;
-                            }
-
-                            $previewPage = $page->replicate();
+                        ->action(function (array $data) use ($record): void {
+                            $previewPage = $record->replicate();
                             $previewPage->fill($data);
 
                             $this->setPreviewableRecord($previewPage);
                             $this->openPreviewModal();
                         })
                     : null,
-                Action::make('visitPage')
-                    ->label('Visit Page')
-                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
-                    ->color('gray')
-                    ->url(fn (): ?string => Page::find($arguments['pageId'])?->frontendUrl(), shouldOpenInNewTab: true)
-                    ->visible(fn (): bool => (bool) Page::find($arguments['pageId'])?->isPublished()),
+                $record
+                    ? Action::make('visitPage')
+                        ->label('Visit Page')
+                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                        ->color('gray')
+                        ->url(fn (): ?string => $record->frontendUrl(), shouldOpenInNewTab: true)
+                        ->visible(fn (): bool => $record->isPublished())
+                    : null,
             ]));
     }
 
@@ -165,15 +157,13 @@ class PageTreePage extends FilamentPage
             ->color('danger')
             ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('delete', $record))
-            ->action(function (array $arguments): void {
-                $page = Page::find($arguments['pageId']);
-
-                if (! $page) {
+            ->action(function (?Page $record): void {
+                if (! $record) {
                     return;
                 }
 
-                $this->authorizePageAction('delete', $page, enforce: true);
-                $page->delete();
+                $this->authorizePageAction('delete', $record, enforce: true);
+                $record->delete();
             });
     }
 
@@ -184,15 +174,13 @@ class PageTreePage extends FilamentPage
             ->modalWidth(Width::Medium)
             ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
-            ->mountUsing(function (Schema $form, array $arguments): void {
-                $page = Page::find($arguments['pageId']);
-
-                if (! $page) {
+            ->mountUsing(function (Schema $form, ?Page $record): void {
+                if (! $record) {
                     return;
                 }
 
                 $form->fill([
-                    'published_at' => $page->published_at,
+                    'published_at' => $record->published_at,
                 ]);
             })
             ->schema([
@@ -200,15 +188,13 @@ class PageTreePage extends FilamentPage
                     ->label('Published At')
                     ->native(false),
             ])
-            ->action(function (array $data, array $arguments): void {
-                $page = Page::find($arguments['pageId']);
-
-                if (! $page) {
+            ->action(function (array $data, ?Page $record): void {
+                if (! $record) {
                     return;
                 }
 
-                $this->authorizePageAction('update', $page, enforce: true);
-                $page->update(['published_at' => $data['published_at']]);
+                $this->authorizePageAction('update', $record, enforce: true);
+                $record->update(['published_at' => $data['published_at']]);
             });
     }
 
