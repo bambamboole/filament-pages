@@ -28,6 +28,7 @@ class EditPage extends EditRecord
         return 'page';
     }
 
+    #[\Override]
     protected function getHeaderActions(): array
     {
         return array_filter([

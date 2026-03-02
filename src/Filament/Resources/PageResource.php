@@ -26,6 +26,7 @@ class PageResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    #[\Override]
     public static function form(Schema $schema): Schema
     {
         $contentSchema = PageFormSchema::make(withSlugSync: true);
@@ -33,6 +34,7 @@ class PageResource extends Resource
         return $schema->components(PageFormSchema::wrapInSeoTabs($contentSchema));
     }
 
+    #[\Override]
     public static function table(Table $table): Table
     {
         return $table
@@ -55,11 +57,13 @@ class PageResource extends Resource
             ]);
     }
 
+    #[\Override]
     public static function getRelations(): array
     {
         return [];
     }
 
+    #[\Override]
     public static function getPages(): array
     {
         return [

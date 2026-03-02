@@ -17,6 +17,11 @@ class PageController
         $locale = $request->route('locale');
         $path = $request->route('path');
 
+        // For fallback routes (no explicit route parameters), derive path from URL
+        if ($path === null && $locale === null) {
+            $path = trim($request->path(), '/') ?: null;
+        }
+
         $slugPath = (empty($path)) ? '/' : '/' . $path;
 
         $page = $model::query()

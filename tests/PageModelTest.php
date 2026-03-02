@@ -69,11 +69,18 @@ it('cascades slug_path when page is moved to root', function () {
         ->and($grandchild->fresh()->slug_path)->toBe('/team/john');
 });
 
-it('auto-generates slug from title when slug is empty', function () {
-    $page = Page::factory()->create(['title' => 'Hello World', 'slug' => '']);
+it('auto-generates slug from title when slug is null', function () {
+    $page = Page::factory()->create(['title' => 'Hello World', 'slug' => null]);
 
     expect($page->slug)->toBe('hello-world')
         ->and($page->slug_path)->toBe('/hello-world');
+});
+
+it('computes slug_path as / for home page slug', function () {
+    $page = Page::factory()->home()->create(['title' => 'Home']);
+
+    expect($page->slug)->toBe('/')
+        ->and($page->slug_path)->toBe('/');
 });
 
 it('stores blocks as array', function () {
@@ -116,22 +123,11 @@ it('identifies a published page when published_at is in the past', function () {
 it('generates frontend URL for a published page', function () {
     $page = Page::factory()->published()->create(['slug' => 'about']);
 
-    expect($page->frontendUrl())->toBe(route('filament-pages.page', ['path' => 'about']));
+    expect($page->frontendUrl())->toBe(url('/about'));
 });
 
 it('generates frontend URL for the homepage', function () {
-    $page = Page::factory()->published()->create(['slug' => 'home']);
+    $page = Page::factory()->published()->home()->create(['title' => 'Home']);
 
-    $page->slug_path = '/';
-    $page->saveQuietly();
-
-    expect($page->fresh()->frontendUrl())->toBe(route('filament-pages.home'));
-});
-
-it('returns null frontend URL when routing is disabled', function () {
-    config()->set('filament-pages.routing.enabled', false);
-
-    $page = Page::factory()->published()->create(['slug' => 'about']);
-
-    expect($page->frontendUrl())->toBeNull();
+    expect($page->frontendUrl())->toBe(url('/'));
 });

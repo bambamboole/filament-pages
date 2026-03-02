@@ -37,7 +37,7 @@ class PageFormSchema
 
         if ($withSlugSync) {
             $titleField = $titleField
-                ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
                     if (! $get('is_slug_changed_manually') && filled($state)) {
                         $set('slug', Str::slug($state));
                     }
@@ -61,16 +61,13 @@ class PageFormSchema
         $slugField = TextInput::make('slug');
 
         if ($withSlugSync) {
-            $slugField = $slugField->afterStateUpdated(function (Set $set) {
+            $slugField = $slugField->afterStateUpdated(function (Set $set): void {
                 $set('is_slug_changed_manually', true);
             });
-        }
-
-        if ($withSlugSync) {
             $slugField = $slugField->required();
         }
 
-        $contentSchema = [
+        return [
             Grid::make(3)->schema([
                 Section::make()->schema($leftSchemaFields)->columnSpan(2),
                 Section::make()->schema([
@@ -79,10 +76,10 @@ class PageFormSchema
                         ->options($plugin->getLocales())
                         ->visible($plugin->hasLocales())
                         ->live()
-                        ->afterStateUpdated(fn (Set $set) => $set('parent_id', null)),
+                        ->afterStateUpdated(fn (Set $set): mixed => $set('parent_id', null)),
                     Select::make('parent_id')
                         ->label('Parent Page')
-                        ->options(fn (Get $get, ?Page $record) => Page::getNestedOptions($excludePageId ?? $record?->id, $get('locale')))
+                        ->options(fn (Get $get, ?Page $record): array => Page::getNestedOptions($excludePageId ?? $record?->id, $get('locale')))
                         ->placeholder('None (Root Page)'),
                     DateTimePicker::make('published_at')
                         ->label('Published At')
@@ -94,8 +91,6 @@ class PageFormSchema
                 ])->columnSpan(1),
             ]),
         ];
-
-        return $contentSchema;
     }
 
     /**

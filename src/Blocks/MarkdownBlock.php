@@ -40,6 +40,7 @@ class MarkdownBlock extends PageBlock
     }
 
     /** {@inheritDoc} */
+    #[\Override]
     public static function mutateData(array $data, ?Model $record = null): array
     {
         $tocPosition = $data['toc_position'] ?? 'off';

@@ -2,6 +2,7 @@
 
 namespace Bambamboole\FilamentPages\Tests;
 
+use Bambamboole\FilamentPages\FilamentPages;
 use Bambamboole\FilamentPages\FilamentPagesServiceProvider;
 use Bambamboole\FilamentPages\Tests\Fixtures\TestPanelProvider;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
@@ -75,6 +76,11 @@ class TestCase extends Orchestra
             'prefix' => '',
             'foreign_key_constraints' => true,
         ]);
+    }
+
+    protected function defineWebRoutes($router): void
+    {
+        FilamentPages::routes();
     }
 
     protected function defineDatabaseMigrations(): void

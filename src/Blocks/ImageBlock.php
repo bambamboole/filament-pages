@@ -30,13 +30,13 @@ class ImageBlock extends PageBlock
                 SpatieMediaLibraryFileUpload::make('image')
                     ->label('Image')
                     ->disk('public')
-                    ->collection(fn (SpatieMediaLibraryFileUpload $component, Get $get) => $get('image_collection_id') ?? $component->getContainer()->getStatePath())
+                    ->collection(fn (SpatieMediaLibraryFileUpload $component, Get $get): mixed => $get('image_collection_id') ?? $component->getContainer()->getStatePath())
                     ->afterStateHydrated(null)
                     ->mutateDehydratedStateUsing(null)
                     ->image()
                     ->imageEditor()
                     ->responsiveImages()
-                    ->afterStateUpdated(fn (SpatieMediaLibraryFileUpload $component, Set $set) => $set('image_collection_id', $component->getContainer()->getStatePath()))
+                    ->afterStateUpdated(fn (SpatieMediaLibraryFileUpload $component, Set $set): mixed => $set('image_collection_id', $component->getContainer()->getStatePath()))
                     ->live()
                     ->required(),
                 Hidden::make('image_collection_id'),
@@ -46,6 +46,7 @@ class ImageBlock extends PageBlock
     }
 
     /** {@inheritDoc} */
+    #[\Override]
     public static function mutateData(array $data, ?Model $record = null): array
     {
         $media = null;

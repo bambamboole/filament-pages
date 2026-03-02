@@ -46,16 +46,12 @@ it('shows a localized page at /{locale}/{path}', function () {
 });
 
 it('shows the localized homepage at /{locale}', function () {
-    $page = Page::factory()->published()->withBlocks([
+    Page::factory()->published()->home()->withBlocks([
         ['type' => 'markdown', 'data' => ['content' => 'Willkommen']],
     ])->create([
         'title' => 'Startseite',
-        'slug' => 'startseite',
         'locale' => 'de',
     ]);
-
-    $page->slug_path = '/';
-    $page->saveQuietly();
 
     $this->get('/de')
         ->assertOk()

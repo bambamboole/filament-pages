@@ -59,6 +59,7 @@ class PageTreePage extends FilamentPage
         return 'page';
     }
 
+    #[\Override]
     public function content(Schema $schema): Schema
     {
         return $schema
@@ -104,7 +105,7 @@ class PageTreePage extends FilamentPage
             ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
-                if (! $record) {
+                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -122,13 +123,13 @@ class PageTreePage extends FilamentPage
                 PageFormSchema::make(excludePageId: $arguments['pageId'] ?? null),
             ))
             ->action(function (array $data, ?Page $record, Schema $form): void {
-                if (! $record) {
+                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
                 $this->authorizePageAction('update', $record, enforce: true);
 
-                if (empty($data['slug']) && ! empty($data['title'])) {
+                if (($data['slug'] ?? null) === null && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
                 }
 
@@ -153,12 +154,12 @@ class PageTreePage extends FilamentPage
                             $this->openPreviewModal();
                         })
                     : null,
-                $record
+                $record instanceof \Bambamboole\FilamentPages\Models\Page
                     ? Action::make('visitPage')
                         ->label('Visit Page')
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->color('gray')
-                        ->url(fn (): ?string => $record->frontendUrl(), shouldOpenInNewTab: true)
+                        ->url(fn (): string => $record->frontendUrl(), shouldOpenInNewTab: true)
                         ->visible(fn (): bool => $record->isPublished())
                     : null,
             ]));
@@ -174,7 +175,7 @@ class PageTreePage extends FilamentPage
                 && ! $record->children()->exists()
                 && $this->authorizePageAction('delete', $record))
             ->action(function (?Page $record): void {
-                if (! $record) {
+                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -196,7 +197,7 @@ class PageTreePage extends FilamentPage
             ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
-                if (! $record) {
+                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -210,7 +211,7 @@ class PageTreePage extends FilamentPage
                     ->native(false),
             ])
             ->action(function (array $data, ?Page $record): void {
-                if (! $record) {
+                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -256,7 +257,7 @@ class PageTreePage extends FilamentPage
         $model::query()
             ->where('locale', $this->locale ?: null)
             ->orderBy('order')
-            ->each(function (Page $page) {
+            ->each(function (Page $page): void {
                 $newSlugPath = $page->computeSlugPath();
                 if ($page->slug_path !== $newSlugPath) {
                     $page->slug_path = $newSlugPath;
@@ -270,6 +271,7 @@ class PageTreePage extends FilamentPage
             ->send();
     }
 
+    #[\Override]
     protected function getHeaderActions(): array
     {
         $actions = [];
@@ -295,7 +297,7 @@ class PageTreePage extends FilamentPage
                 $model = $this->getPageModel();
                 $this->authorizePageAction('create', $model, enforce: true);
 
-                if (empty($data['slug']) && ! empty($data['title'])) {
+                if (($data['slug'] ?? null) === null && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
                 }
 

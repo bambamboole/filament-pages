@@ -26,23 +26,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Frontend Routing
-    |--------------------------------------------------------------------------
-    |
-    | Controls the catch-all route that renders pages on the frontend.
-    | Disable this if you handle page rendering in your own routes.
-    | When locales are set, routes are prefixed with /{locale}/.
-    |
-    */
-    'routing' => [
-        'enabled' => true,
-        'prefix' => '',
-        'middleware' => ['web'],
-        'locales' => [],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Layouts
     |--------------------------------------------------------------------------
     |
@@ -92,6 +75,23 @@ return [
             'normalize' => 'relative',
             'min_heading_level' => 2,
             'max_heading_level' => 6,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEO Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Fallback values used when SEO fields are not explicitly filled on a page.
+    | The default_og_image should be a path relative to the public directory.
+    |
+    */
+    'seo' => [
+        'defaults' => [
+            'og_title' => '',
+            'og_description' => '',
+            'default_og_image' => null, // e.g. 'images/default-og.png'
         ],
     ],
 ];

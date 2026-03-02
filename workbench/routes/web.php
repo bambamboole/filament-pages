@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use Bambamboole\FilamentPages\FilamentPages;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+FilamentPages::routes();

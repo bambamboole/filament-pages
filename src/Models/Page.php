@@ -32,6 +32,7 @@ class Page extends Model implements HasMedia, Linkable
 
     protected $guarded = [];
 
+    #[\Override]
     protected function casts(): array
     {
         return [
@@ -47,8 +48,18 @@ class Page extends Model implements HasMedia, Linkable
 
     public function getDynamicSEOData(): SEOData
     {
+        $ogImageUrl = $this->getFirstMediaUrl('og-image') ?: null;
+
+        if (! $ogImageUrl) {
+            $defaultPath = config('filament-pages.seo.defaults.default_og_image');
+
+            if ($defaultPath) {
+                $ogImageUrl = asset($defaultPath);
+            }
+        }
+
         return new SEOData(
-            image: $this->getFirstMediaUrl('og-image') ?: null,
+            image: $ogImageUrl,
         );
     }
 
@@ -77,34 +88,19 @@ class Page extends Model implements HasMedia, Linkable
         return 'title';
     }
 
-    public function frontendUrl(): ?string
+    public function frontendUrl(): string
     {
-        if (! config('filament-pages.routing.enabled')) {
-            return null;
-        }
-
-        $locales = config('filament-pages.routing.locales', []);
-
-        if ($this->slug_path === '/') {
-            return ! empty($locales)
-                ? route('filament-pages.home', ['locale' => $this->locale])
-                : route('filament-pages.home');
-        }
-
-        $path = ltrim($this->slug_path, '/');
-
-        return ! empty($locales)
-            ? route('filament-pages.page', ['locale' => $this->locale, 'path' => $path])
-            : route('filament-pages.page', ['path' => $path]);
+        return url($this->slug_path);
     }
 
+    #[\Override]
     protected static function booted(): void
     {
         static::addGlobalScope('type', fn (Builder $query) => $query->where('type', static::$pageType));
 
-        static::saving(function (Page $page) {
+        static::saving(function (Page $page): void {
             $page->type ??= static::$pageType;
-            if (empty($page->slug) && ! empty($page->title)) {
+            if ($page->slug === null && ! empty($page->title)) {
                 $page->slug = Str::slug($page->title);
             }
 
@@ -115,13 +111,13 @@ class Page extends Model implements HasMedia, Linkable
             $page->slug_path = $page->computeSlugPath();
         });
 
-        static::saved(function (Page $page) {
+        static::saved(function (Page $page): void {
             if ($page->wasChanged('slug') || $page->wasChanged('parent_id')) {
                 $page->cascadeSlugPath();
             }
         });
 
-        static::deleting(function (Page $page) {
+        static::deleting(function (Page $page): void {
             if ($page->children()->exists()) {
                 throw new \LogicException("Cannot delete page [{$page->id}] because it has child pages. Move or delete children first.");
             }
@@ -167,7 +163,7 @@ class Page extends Model implements HasMedia, Linkable
             ->get();
         $grouped = $items->groupBy(fn (self $item): int => $item->parent_id ?? 0);
 
-        static::buildTreeRelations($grouped, 0);
+        self::buildTreeRelations($grouped, 0);
 
         return $grouped->get(0, new Collection);
     }
@@ -182,13 +178,17 @@ class Page extends Model implements HasMedia, Linkable
             $item->setRelation('children', $children);
 
             if ($children->isNotEmpty()) {
-                static::buildTreeRelations($grouped, $item->id);
+                self::buildTreeRelations($grouped, $item->id);
             }
         }
     }
 
     public function computeSlugPath(): string
     {
+        if ($this->slug === '/') {
+            return '/';
+        }
+
         if ($this->parent_id === null) {
             return '/' . $this->slug;
         }
@@ -225,7 +225,7 @@ class Page extends Model implements HasMedia, Linkable
     {
         $tree = static::buildTree($locale);
         $options = [];
-        static::flattenTreeOptions($tree, $options, 0, $excludeId);
+        self::flattenTreeOptions($tree, $options, 0, $excludeId);
 
         return $options;
     }
@@ -245,7 +245,7 @@ class Page extends Model implements HasMedia, Linkable
             $options[$item->id] = $prefix . $item->title;
 
             if ($item->children->isNotEmpty()) {
-                static::flattenTreeOptions($item->children, $options, $depth + 1, $excludeId);
+                self::flattenTreeOptions($item->children, $options, $depth + 1, $excludeId);
             }
         }
     }
@@ -304,7 +304,7 @@ class Page extends Model implements HasMedia, Linkable
     {
         $parentPath = $this->slug_path;
 
-        $this->children()->each(function (Page $child) use ($parentPath) {
+        $this->children()->each(function (Page $child) use ($parentPath): void {
             $child->slug_path = $parentPath . '/' . $child->slug;
             $child->saveQuietly();
 

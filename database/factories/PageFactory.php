@@ -24,6 +24,11 @@ class PageFactory extends Factory
         ];
     }
 
+    public function home(): static
+    {
+        return $this->state(fn () => ['slug' => '/']);
+    }
+
     public function withParent(Page $parent): static
     {
         return $this->state(fn () => [

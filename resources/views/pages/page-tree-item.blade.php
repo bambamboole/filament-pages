@@ -44,38 +44,27 @@
                     Draft
                 </x-filament::badge>
             @endif
-            <button
-                type="button"
-                class="text-gray-400 hover:text-primary-500 p-1"
+            <x-filament::icon-button
+                icon="heroicon-m-pencil-square"
+                color="gray"
+                size="sm"
                 x-on:click="$wire.mountAction('editPage', { pageId: {{ $page->id }} })"
-            >
-                <x-filament::icon icon="heroicon-m-pencil-square" class="h-4 w-4" />
-            </button>
-            @if($page->children->isEmpty())
-                <button
-                    type="button"
-                    class="text-gray-400 hover:text-danger-500 p-1"
-                    x-on:click="$wire.mountAction('deletePage', { pageId: {{ $page->id }} })"
-                >
-                    <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" />
-                </button>
-            @else
+            />
+            <x-filament::icon-button
+                icon="heroicon-m-trash"
+                color="gray"
+                size="sm"
+                :disabled="$page->children->isNotEmpty()"
+                :tooltip="$page->children->isNotEmpty() ? 'Cannot delete — page has children' : null"
+                x-on:click="$wire.mountAction('deletePage', { pageId: {{ $page->id }} })"
+            />
+            @foreach($this->getExtraTreeItemActions() as $extraAction)
                 <x-filament::icon-button
-                    icon="heroicon-m-trash"
+                    :icon="$extraAction->getIcon() ?? 'heroicon-m-ellipsis-horizontal'"
                     color="gray"
                     size="sm"
-                    disabled
-                    tooltip="Cannot delete — page has children"
-                />
-            @endif
-            @foreach($this->getExtraTreeItemActions() as $extraAction)
-                <button
-                    type="button"
-                    class="text-gray-400 hover:text-primary-500 p-1"
                     x-on:click="$wire.mountAction('{{ $extraAction->getName() }}', { pageId: {{ $page->id }} })"
-                >
-                    <x-filament::icon :icon="$extraAction->getIcon() ?? 'heroicon-m-ellipsis-horizontal'" class="h-4 w-4" />
-                </button>
+                />
             @endforeach
         </div>
     </div>

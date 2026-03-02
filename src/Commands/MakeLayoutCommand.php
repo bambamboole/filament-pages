@@ -64,7 +64,7 @@ class MakeLayoutCommand extends Command
 
             $filePath = base_path($this->namespaceToPath($namespace) . '/' . $className . '.php');
 
-            return compact('namespace', 'className', 'kebabName', 'filePath');
+            return ['namespace' => $namespace, 'className' => $className, 'kebabName' => $kebabName, 'filePath' => $filePath];
         }
 
         $studlyName = Str::studly($name);
@@ -73,7 +73,7 @@ class MakeLayoutCommand extends Command
         $kebabName = Str::kebab($studlyName);
         $filePath = app_path("Layouts/{$className}.php");
 
-        return compact('namespace', 'className', 'kebabName', 'filePath');
+        return ['namespace' => $namespace, 'className' => $className, 'kebabName' => $kebabName, 'filePath' => $filePath];
     }
 
     private function namespaceToPath(string $namespace): string
@@ -85,11 +85,11 @@ class MakeLayoutCommand extends Command
         );
 
         foreach ($autoload as $prefix => $path) {
-            $prefix = rtrim($prefix, '\\');
+            $prefix = rtrim((string) $prefix, '\\');
             if (str_starts_with($namespace, $prefix)) {
                 $relative = str_replace('\\', '/', substr($namespace, strlen($prefix)));
 
-                return rtrim($path, '/') . $relative;
+                return rtrim((string) $path, '/') . $relative;
             }
         }
 

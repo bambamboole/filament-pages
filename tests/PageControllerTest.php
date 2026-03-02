@@ -27,15 +27,11 @@ it('returns 404 for a non-existent path', function () {
 });
 
 it('shows the homepage at the root path', function () {
-    $page = Page::factory()->published()->withBlocks([
+    Page::factory()->published()->home()->withBlocks([
         ['type' => 'markdown', 'data' => ['content' => 'Welcome home']],
     ])->create([
         'title' => 'Home',
-        'slug' => 'home',
     ]);
-
-    $page->slug_path = '/';
-    $page->saveQuietly();
 
     $this->get('/')
         ->assertOk()
