@@ -80,11 +80,19 @@ class PageTreePage extends FilamentPage
     }
 
     /**
+     * @return class-string<Page>
+     */
+    protected function getPageModel(): string
+    {
+        return config('filament-pages.model', Page::class);
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Collection<int, Page>
      */
     public function getTreeItems(): \Illuminate\Database\Eloquent\Collection
     {
-        return Page::buildTree($this->locale ?: null);
+        return $this->getPageModel()::buildTree($this->locale ?: null);
     }
 
     public function editPageAction(): Action
@@ -92,7 +100,7 @@ class PageTreePage extends FilamentPage
         return Action::make('editPage')
             ->slideOver()
             ->modalWidth(Width::SevenExtraLarge)
-            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
                 if (! $record) {
@@ -155,7 +163,7 @@ class PageTreePage extends FilamentPage
         return Action::make('deletePage')
             ->requiresConfirmation()
             ->color('danger')
-            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('delete', $record))
             ->action(function (?Page $record): void {
                 if (! $record) {
@@ -172,7 +180,7 @@ class PageTreePage extends FilamentPage
         return Action::make('updatePublishedAt')
             ->modalHeading('Set Publication Date')
             ->modalWidth(Width::Medium)
-            ->record(fn (array $arguments): ?Page => Page::find($arguments['pageId']))
+            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
                 if (! $record) {
@@ -217,21 +225,26 @@ class PageTreePage extends FilamentPage
      */
     public function reorderTree(array $tree): void
     {
-        if (Gate::getPolicyFor(Page::class)) {
-            Gate::authorize('reorder', Page::class);
+        $model = $this->getPageModel();
+
+        if (Gate::getPolicyFor($model)) {
+            Gate::authorize('reorder', $model);
         }
 
         $order = 0;
         $this->persistTree($tree, null, $order);
 
-        // Recompute slug_paths for all pages after reorder
-        Page::query()->orderBy('order')->each(function (Page $page) {
-            $newSlugPath = $page->computeSlugPath();
-            if ($page->slug_path !== $newSlugPath) {
-                $page->slug_path = $newSlugPath;
-                $page->saveQuietly();
-            }
-        });
+        // Recompute slug_paths for affected pages after reorder
+        $model::query()
+            ->where('locale', $this->locale ?: null)
+            ->orderBy('order')
+            ->each(function (Page $page) {
+                $newSlugPath = $page->computeSlugPath();
+                if ($page->slug_path !== $newSlugPath) {
+                    $page->slug_path = $newSlugPath;
+                    $page->saveQuietly();
+                }
+            });
     }
 
     protected function getHeaderActions(): array
@@ -248,7 +261,7 @@ class PageTreePage extends FilamentPage
             ->label('New Page')
             ->slideOver()
             ->modalWidth(Width::SevenExtraLarge)
-            ->visible(fn (): bool => $this->authorizePageAction('create', Page::class))
+            ->visible(fn (): bool => $this->authorizePageAction('create', $this->getPageModel()))
             ->fillForm([
                 'locale' => $this->locale,
             ])
@@ -256,13 +269,14 @@ class PageTreePage extends FilamentPage
                 PageFormSchema::make(),
             ))
             ->action(function (array $data, Schema $form): void {
-                $this->authorizePageAction('create', Page::class, enforce: true);
+                $model = $this->getPageModel();
+                $this->authorizePageAction('create', $model, enforce: true);
 
                 if (empty($data['slug']) && ! empty($data['title'])) {
                     $data['slug'] = Str::slug($data['title']);
                 }
 
-                $page = Page::create($data);
+                $page = $model::create($data);
                 $form->model($page)->saveRelationships();
             })
             ->extraModalFooterActions(fn (): array => array_filter([
@@ -271,7 +285,8 @@ class PageTreePage extends FilamentPage
                         ->label(__('filament-peek::ui.preview-action-label'))
                         ->color('gray')
                         ->action(function (array $data): void {
-                            $previewPage = new Page($data);
+                            $model = $this->getPageModel();
+                            $previewPage = new $model($data);
 
                             $this->setPreviewableRecord($previewPage);
                             $this->openPreviewModal();
@@ -292,8 +307,10 @@ class PageTreePage extends FilamentPage
      */
     private function persistTree(array $items, ?int $parentId, int &$order): void
     {
+        $model = $this->getPageModel();
+
         foreach ($items as $item) {
-            Page::where('id', $item['id'])->update([
+            $model::where('id', $item['id'])->update([
                 'parent_id' => $parentId,
                 'order' => $order++,
             ]);
@@ -310,7 +327,7 @@ class PageTreePage extends FilamentPage
      */
     private function authorizePageAction(string $ability, Page | string $target, bool $enforce = false): bool
     {
-        if (! Gate::getPolicyFor(Page::class)) {
+        if (! Gate::getPolicyFor($this->getPageModel())) {
             return true;
         }
 

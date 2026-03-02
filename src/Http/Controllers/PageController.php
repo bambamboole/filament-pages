@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Http\Controllers;
 
+use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Layouts\DefaultLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ class PageController
     private function resolveLayout(?string $layoutKey): PageLayout
     {
         /** @var array<class-string<PageLayout>> $layoutClasses */
-        $layoutClasses = config('filament-pages.layouts', []);
+        $layoutClasses = $this->getLayoutClasses();
 
         if ($layoutClasses === []) {
             return new DefaultLayout;
@@ -48,5 +49,20 @@ class PageController
         $layoutClass = $map[$layoutKey] ?? reset($layoutClasses);
 
         return new $layoutClass;
+    }
+
+    /**
+     * Resolve layout classes from the plugin instance first, then fall back to config.
+     *
+     * @return array<class-string<PageLayout>>
+     */
+    private function getLayoutClasses(): array
+    {
+        try {
+            return FilamentPagesPlugin::get()->getLayouts();
+        } catch (\Throwable) {
+            // Plugin may not be booted yet in non-panel contexts (e.g. API routes)
+            return config('filament-pages.layouts', []);
+        }
     }
 }

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Bambamboole\FilamentPages\Models;
 
-use Bambamboole\FilamentMenu\Concerns\IsLinkable;
-use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Models\Concerns\HasLinkable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,12 +20,12 @@ use RalphJSmit\Laravel\SEO\Support\SEOData;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Page extends Model implements HasMedia, Linkable
+class Page extends Model implements HasMedia
 {
     use HasFactory;
+    use HasLinkable;
     use HasSEO;
     use InteractsWithMedia;
-    use IsLinkable;
     use SoftDeletes;
 
     protected static string $pageType = 'page';
@@ -66,16 +65,6 @@ class Page extends Model implements HasMedia, Linkable
     public function isScheduled(): bool
     {
         return $this->published_at !== null && $this->published_at->isFuture();
-    }
-
-    public function getLink(): string
-    {
-        return url($this->slug_path);
-    }
-
-    public static function getNameColumn(): string
-    {
-        return 'title';
     }
 
     public function frontendUrl(): ?string

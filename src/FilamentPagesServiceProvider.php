@@ -6,14 +6,12 @@ namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Commands\MakeBlockCommand;
 use Bambamboole\FilamentPages\Commands\MakeLayoutCommand;
-use Bambamboole\FilamentPages\Testing\TestsFilamentPages;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Blade;
-use Livewire\Features\SupportTesting\Testable;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -87,8 +85,6 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
             return "<?php echo '<style>' . file_get_contents('{$path}') . '</style>'; ?>";
         });
 
-        // Testing
-        Testable::mixin(new TestsFilamentPages);
     }
 
     protected function getAssetPackageName(): ?string
