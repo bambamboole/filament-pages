@@ -122,6 +122,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
     {
         return [
             'create_pages_table',
+            'create_seo_table',
         ];
     }
 }

@@ -29,6 +29,8 @@
         "league/commonmark": "^2.7",
         "nette/php-generator": "^4.2",
         "pboivin/filament-peek": "^4.0",
+        "ralphjsmit/laravel-filament-seo": "^2.1",
+        "ralphjsmit/laravel-seo": "^1.7",
         "ryangjchandler/commonmark-blade-block": "^1.1",
         "spatie/laravel-package-tools": "^1.15.0",
         "torchlight/torchlight-commonmark": "^0.6"
