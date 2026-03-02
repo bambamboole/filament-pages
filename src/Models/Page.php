@@ -191,25 +191,24 @@ class Page extends Model implements HasMedia, Linkable
             return '/' . $this->slug;
         }
 
-        // Load all potential ancestors in a single query and index by ID
-        $ancestors = static::withoutGlobalScopes()
-            ->where('type', static::$pageType)
-            ->pluck('slug', 'id')
-            ->toArray();
-
-        $parentIds = static::withoutGlobalScopes()
-            ->where('type', static::$pageType)
-            ->pluck('parent_id', 'id')
-            ->toArray();
-
         $segments = [$this->slug];
         $currentParentId = $this->parent_id;
         $visited = [];
 
-        while ($currentParentId !== null && isset($ancestors[$currentParentId]) && ! isset($visited[$currentParentId])) {
+        while ($currentParentId !== null && ! isset($visited[$currentParentId])) {
             $visited[$currentParentId] = true;
-            array_unshift($segments, $ancestors[$currentParentId]);
-            $currentParentId = $parentIds[$currentParentId] ?? null;
+
+            $ancestor = static::withoutGlobalScopes()
+                ->where('type', static::$pageType)
+                ->where('id', $currentParentId)
+                ->first(['id', 'slug', 'parent_id']);
+
+            if ($ancestor === null) {
+                break;
+            }
+
+            array_unshift($segments, $ancestor->slug);
+            $currentParentId = $ancestor->parent_id;
         }
 
         return '/' . implode('/', $segments);
