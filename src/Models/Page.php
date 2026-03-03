@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
 use Spatie\MediaLibrary\HasMedia;
@@ -102,6 +103,12 @@ class Page extends Model implements HasMedia, Linkable
             $page->type ??= static::$pageType;
             if ($page->slug === null && ! empty($page->title)) {
                 $page->slug = Str::slug($page->title);
+            }
+
+            if ($page->slug === '/' && $page->exists && $page->children()->exists()) {
+                throw ValidationException::withMessages([
+                    'slug' => 'Cannot set slug to "/" because this page has children.',
+                ]);
             }
 
             if (! $page->exists && $page->order === null) {
@@ -237,7 +244,7 @@ class Page extends Model implements HasMedia, Linkable
     private static function flattenTreeOptions(Collection $items, array &$options, int $depth, ?int $excludeId): void
     {
         foreach ($items as $item) {
-            if ($item->id === $excludeId) {
+            if ($item->id === $excludeId || $item->slug === '/') {
                 continue;
             }
 

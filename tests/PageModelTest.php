@@ -1,6 +1,7 @@
 <?php
 
 use Bambamboole\FilamentPages\Models\Page;
+use Illuminate\Validation\ValidationException;
 
 it('computes slug_path for root pages', function () {
     $page = Page::factory()->create(['title' => 'About', 'slug' => 'about']);
@@ -131,3 +132,21 @@ it('generates frontend URL for the homepage', function () {
 
     expect($page->frontendUrl())->toBe(url('/'));
 });
+
+it('excludes homepage from nested parent options', function () {
+    $homepage = Page::factory()->home()->create(['title' => 'Home']);
+    $about = Page::factory()->create(['title' => 'About', 'slug' => 'about']);
+
+    $options = Page::getNestedOptions();
+
+    expect($options)->toHaveKey($about->id)
+        ->not->toHaveKey($homepage->id);
+});
+
+it('prevents setting slug to / when page has children', function () {
+    $parent = Page::factory()->create(['title' => 'Parent', 'slug' => 'parent']);
+    Page::factory()->withParent($parent)->create(['title' => 'Child', 'slug' => 'child']);
+
+    $parent->slug = '/';
+    $parent->save();
+})->throws(ValidationException::class, 'Cannot set slug to "/" because this page has children.');

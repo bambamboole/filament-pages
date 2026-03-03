@@ -110,3 +110,132 @@ it('can clear published_at via updatePublishedAt action', function () {
 
     expect($page->fresh()->published_at)->toBeNull();
 });
+
+it('selects a page and sets form state', function () {
+    $page = Page::factory()->create(['title' => 'My Page', 'slug' => 'my-page']);
+
+    livewire(PageTreePage::class)
+        ->call('selectPage', $page->id)
+        ->assertSet('formMode', 'edit')
+        ->assertSet('activePageId', $page->id)
+        ->assertSet('editPageId', $page->id);
+});
+
+it('can edit a page via inline form', function () {
+    $page = Page::factory()->create(['title' => 'Old Title', 'slug' => 'old-title']);
+
+    livewire(PageTreePage::class)
+        ->call('selectPage', $page->id)
+        ->fillForm([
+            'title' => 'New Title',
+            'slug' => 'new-title',
+            'parent_id' => null,
+            'published_at' => null,
+            'layout' => null,
+            'blocks' => [],
+        ], 'pageForm')
+        ->call('savePage')
+        ->assertNotified('Page updated');
+
+    expect($page->fresh()->title)->toBe('New Title')
+        ->and($page->fresh()->slug)->toBe('new-title');
+});
+
+it('shows error when editing page slug to / while it has children', function () {
+    $parent = Page::factory()->create(['title' => 'Parent', 'slug' => 'parent']);
+    Page::factory()->withParent($parent)->create(['title' => 'Child', 'slug' => 'child']);
+
+    livewire(PageTreePage::class)
+        ->call('selectPage', $parent->id)
+        ->fillForm([
+            'title' => 'Parent',
+            'slug' => '/',
+            'parent_id' => null,
+            'published_at' => null,
+            'layout' => null,
+            'blocks' => [],
+        ], 'pageForm')
+        ->call('savePage')
+        ->assertNotified('Cannot set slug to "/" because this page has children');
+
+    expect($parent->fresh()->slug)->toBe('parent');
+});
+
+it('can create a page via inline form', function () {
+    livewire(PageTreePage::class)
+        ->call('startCreatePage')
+        ->assertSet('formMode', 'create')
+        ->assertSet('activePageId', null)
+        ->fillForm([
+            'title' => 'Brand New Page',
+            'slug' => 'brand-new-page',
+            'parent_id' => null,
+            'published_at' => null,
+            'layout' => null,
+            'blocks' => [],
+        ], 'pageForm')
+        ->call('savePage')
+        ->assertNotified('Page created');
+
+    $page = Page::where('title', 'Brand New Page')->first();
+    expect($page)->not->toBeNull()
+        ->and($page->slug)->toBe('brand-new-page');
+});
+
+it('switches to edit mode after creating a page', function () {
+    $component = livewire(PageTreePage::class)
+        ->call('startCreatePage')
+        ->fillForm([
+            'title' => 'Created Page',
+            'slug' => 'created-page',
+            'parent_id' => null,
+            'published_at' => null,
+            'layout' => null,
+            'blocks' => [],
+        ], 'pageForm')
+        ->call('savePage');
+
+    $page = Page::where('title', 'Created Page')->first();
+    $component->assertSet('formMode', 'edit')
+        ->assertSet('activePageId', $page->id);
+});
+
+it('deselects page and clears form state', function () {
+    $page = Page::factory()->create(['title' => 'Test Page']);
+
+    livewire(PageTreePage::class)
+        ->call('selectPage', $page->id)
+        ->assertSet('formMode', 'edit')
+        ->call('deselectPage')
+        ->assertSet('formMode', null)
+        ->assertSet('activePageId', null)
+        ->assertSet('editPageId', null);
+});
+
+it('deselects page when active page is deleted', function () {
+    $page = Page::factory()->create(['title' => 'Doomed Page']);
+
+    livewire(PageTreePage::class)
+        ->call('selectPage', $page->id)
+        ->assertSet('activePageId', $page->id)
+        ->callAction('deletePage', arguments: ['pageId' => $page->id])
+        ->assertSet('activePageId', null)
+        ->assertSet('formMode', null);
+
+    expect(Page::find($page->id))->toBeNull();
+});
+
+it('rejects reorderTree when pages are nested under homepage', function () {
+    $homepage = Page::factory()->home()->create(['title' => 'Home']);
+    $about = Page::factory()->create(['title' => 'About', 'slug' => 'about', 'order' => 1]);
+
+    livewire(PageTreePage::class)
+        ->call('reorderTree', [
+            ['id' => $homepage->id, 'children' => [
+                ['id' => $about->id, 'children' => []],
+            ]],
+        ])
+        ->assertNotified('Cannot nest pages under the homepage');
+
+    expect($about->fresh()->parent_id)->toBeNull();
+});

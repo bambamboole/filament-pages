@@ -19,14 +19,18 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Url;
 use Pboivin\FilamentPeek\Facades\Peek;
 use Pboivin\FilamentPeek\Pages\Concerns\HasPreviewModal;
 
+/**
+ * @property-read Schema $pageForm
+ */
 class PageTreePage extends FilamentPage
 {
     use HasPreviewModal;
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $navigationLabel = 'Pages';
 
@@ -34,7 +38,19 @@ class PageTreePage extends FilamentPage
 
     protected static ?string $slug = 'page-tree';
 
+    protected Width|string|null $maxContentWidth = Width::Full;
+
     public ?string $locale = '';
+
+    #[Url(as: 'editPage')]
+    public ?int $editPageId = null;
+
+    /** @var array<string, mixed>|null */
+    public ?array $data = [];
+
+    public ?string $formMode = null;
+
+    public ?int $activePageId = null;
 
     public function mount(): void
     {
@@ -46,6 +62,10 @@ class PageTreePage extends FilamentPage
 
         if ($plugin->isPreviewEnabled()) {
             Peek::registerPreviewModal();
+        }
+
+        if ($this->editPageId !== null) {
+            $this->selectPage($this->editPageId);
         }
     }
 
@@ -59,13 +79,116 @@ class PageTreePage extends FilamentPage
         return 'page';
     }
 
+    public function defaultPageForm(Schema $schema): Schema
+    {
+        $record = $this->activePageId ? $this->getPageModel()::find($this->activePageId) : null;
+
+        return $schema
+            ->model($record ?? $this->getPageModel())
+            ->operation($this->formMode === 'edit' ? 'edit' : 'create')
+            ->statePath('data');
+    }
+
+    public function pageForm(Schema $schema): Schema
+    {
+        return $schema->components(
+            PageFormSchema::wrapInSeoTabs(
+                PageFormSchema::make(excludePageId: $this->activePageId),
+            )
+        );
+    }
+
     #[\Override]
     public function content(Schema $schema): Schema
     {
         return $schema
             ->components([
-                View::make('filament-pages::pages.page-tree'),
+                View::make('filament-pages::pages.page-tree-layout'),
             ]);
+    }
+
+    public function selectPage(int $pageId): void
+    {
+        $record = $this->getPageModel()::find($pageId);
+
+        if (!$record instanceof Page) {
+            return;
+        }
+
+        if (!$this->authorizePageAction('update', $record)) {
+            return;
+        }
+
+        $this->formMode = 'edit';
+        $this->activePageId = $pageId;
+        $this->editPageId = $pageId;
+
+        $this->cacheSchema('pageForm', null);
+
+        $this->getSchema('pageForm')->fill([
+            'title' => $record->title,
+            'slug' => $record->slug,
+            'locale' => $record->locale,
+            'parent_id' => $record->parent_id,
+            'published_at' => $record->published_at,
+            'layout' => $record->layout,
+            'blocks' => $record->blocks ?? [],
+        ]);
+    }
+
+    public function startCreatePage(): void
+    {
+        if (!$this->authorizePageAction('create', $this->getPageModel())) {
+            return;
+        }
+
+        $this->formMode = 'create';
+        $this->activePageId = null;
+        $this->editPageId = null;
+
+        $this->cacheSchema('pageForm', null);
+
+        $this->getSchema('pageForm')->fill([
+            'locale' => $this->locale,
+        ]);
+    }
+
+    public function deselectPage(): void
+    {
+        $this->formMode = null;
+        $this->activePageId = null;
+        $this->editPageId = null;
+        $this->data = [];
+    }
+
+    public function savePage(): void
+    {
+        if ($this->formMode === 'edit') {
+            $this->saveEditPage();
+        } elseif ($this->formMode === 'create') {
+            $this->saveCreatePage();
+        }
+    }
+
+    public function previewPage(): void
+    {
+        $data = $this->pageForm->getState();
+        $model = $this->getPageModel();
+
+        if ($this->formMode === 'edit' && $this->activePageId) {
+            $record = $model::find($this->activePageId);
+            if ($record) {
+                $previewPage = $record->replicate();
+                $previewPage->fill($data);
+            }
+        } else {
+            $previewPage = new $model($data);
+        }
+
+        if (isset($previewPage)) {
+            $this->setPreviewableRecord($previewPage);
+            $this->openPreviewModal();
+        }
     }
 
     public function hasLocales(): bool
@@ -97,74 +220,6 @@ class PageTreePage extends FilamentPage
         return $this->getPageModel()::buildTree($this->locale ?: null);
     }
 
-    public function editPageAction(): Action
-    {
-        return Action::make('editPage')
-            ->slideOver()
-            ->modalWidth(Width::SevenExtraLarge)
-            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
-            ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
-            ->mountUsing(function (Schema $form, ?Page $record): void {
-                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
-                    return;
-                }
-
-                $form->fill([
-                    'title' => $record->title,
-                    'slug' => $record->slug,
-                    'locale' => $record->locale,
-                    'parent_id' => $record->parent_id,
-                    'published_at' => $record->published_at,
-                    'layout' => $record->layout,
-                    'blocks' => $record->blocks ?? [],
-                ]);
-            })
-            ->schema(fn (array $arguments): array => PageFormSchema::wrapInSeoTabs(
-                PageFormSchema::make(excludePageId: $arguments['pageId'] ?? null),
-            ))
-            ->action(function (array $data, ?Page $record, Schema $form): void {
-                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
-                    return;
-                }
-
-                $this->authorizePageAction('update', $record, enforce: true);
-
-                if (($data['slug'] ?? null) === null && ! empty($data['title'])) {
-                    $data['slug'] = Str::slug($data['title']);
-                }
-
-                $record->update($data);
-                $form->model($record)->saveRelationships();
-
-                Notification::make()
-                    ->title('Page updated')
-                    ->success()
-                    ->send();
-            })
-            ->extraModalFooterActions(fn (?Page $record): array => array_filter([
-                FilamentPagesPlugin::get()->isPreviewEnabled() && $record
-                    ? Action::make('previewEditPage')
-                        ->label(__('filament-peek::ui.preview-action-label'))
-                        ->color('gray')
-                        ->action(function (array $data) use ($record): void {
-                            $previewPage = $record->replicate();
-                            $previewPage->fill($data);
-
-                            $this->setPreviewableRecord($previewPage);
-                            $this->openPreviewModal();
-                        })
-                    : null,
-                $record instanceof \Bambamboole\FilamentPages\Models\Page
-                    ? Action::make('visitPage')
-                        ->label('Visit Page')
-                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
-                        ->color('gray')
-                        ->url(fn (): string => $record->frontendUrl(), shouldOpenInNewTab: true)
-                        ->visible(fn (): bool => $record->isPublished())
-                    : null,
-            ]));
-    }
-
     public function deletePageAction(): Action
     {
         return Action::make('deletePage')
@@ -172,15 +227,19 @@ class PageTreePage extends FilamentPage
             ->color('danger')
             ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $record
-                && ! $record->children()->exists()
+                && !$record->children()->exists()
                 && $this->authorizePageAction('delete', $record))
             ->action(function (?Page $record): void {
-                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
                 $this->authorizePageAction('delete', $record, enforce: true);
                 $record->delete();
+
+                if ($this->activePageId === $record->id) {
+                    $this->deselectPage();
+                }
 
                 Notification::make()
                     ->title('Page deleted')
@@ -197,7 +256,7 @@ class PageTreePage extends FilamentPage
             ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
-                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -211,7 +270,7 @@ class PageTreePage extends FilamentPage
                     ->native(false),
             ])
             ->action(function (array $data, ?Page $record): void {
-                if (! $record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
                     return;
                 }
 
@@ -250,6 +309,23 @@ class PageTreePage extends FilamentPage
             Gate::authorize('reorder', $model);
         }
 
+        $homepageId = $model::query()
+            ->where('locale', $this->locale ?: null)
+            ->where('slug', '/')
+            ->value('id');
+
+        if ($homepageId !== null) {
+            $homepageNode = collect($tree)->firstWhere('id', $homepageId);
+            if ($homepageNode && !empty($homepageNode['children'])) {
+                Notification::make()
+                    ->title('Cannot nest pages under the homepage')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+        }
+
         $order = 0;
         $this->persistTree($tree, null, $order);
 
@@ -284,45 +360,8 @@ class PageTreePage extends FilamentPage
 
         $actions[] = Action::make('createPage')
             ->label('New Page')
-            ->slideOver()
-            ->modalWidth(Width::SevenExtraLarge)
             ->visible(fn (): bool => $this->authorizePageAction('create', $this->getPageModel()))
-            ->fillForm([
-                'locale' => $this->locale,
-            ])
-            ->schema(PageFormSchema::wrapInSeoTabs(
-                PageFormSchema::make(),
-            ))
-            ->action(function (array $data, Schema $form): void {
-                $model = $this->getPageModel();
-                $this->authorizePageAction('create', $model, enforce: true);
-
-                if (($data['slug'] ?? null) === null && ! empty($data['title'])) {
-                    $data['slug'] = Str::slug($data['title']);
-                }
-
-                $page = $model::create($data);
-                $form->model($page)->saveRelationships();
-
-                Notification::make()
-                    ->title('Page created')
-                    ->success()
-                    ->send();
-            })
-            ->extraModalFooterActions(fn (): array => array_filter([
-                FilamentPagesPlugin::get()->isPreviewEnabled()
-                    ? Action::make('previewCreatePage')
-                        ->label(__('filament-peek::ui.preview-action-label'))
-                        ->color('gray')
-                        ->action(function (array $data): void {
-                            $model = $this->getPageModel();
-                            $previewPage = new $model($data);
-
-                            $this->setPreviewableRecord($previewPage);
-                            $this->openPreviewModal();
-                        })
-                    : null,
-            ]));
+            ->action(fn () => $this->startCreatePage());
 
         $actions[] = Action::make('tableView')
             ->label('Table View')
@@ -345,7 +384,7 @@ class PageTreePage extends FilamentPage
                 'order' => $order++,
             ]);
 
-            if (! empty($item['children'])) {
+            if (!empty($item['children'])) {
                 $this->persistTree($item['children'], $item['id'], $order);
             }
         }
@@ -355,9 +394,9 @@ class PageTreePage extends FilamentPage
      * Check authorization for a page action. Returns true when no policy is registered.
      * When enforce is true, throws AuthorizationException instead of returning false.
      */
-    private function authorizePageAction(string $ability, Page | string $target, bool $enforce = false): bool
+    private function authorizePageAction(string $ability, Page|string $target, bool $enforce = false): bool
     {
-        if (! Gate::getPolicyFor($this->getPageModel())) {
+        if (!Gate::getPolicyFor($this->getPageModel())) {
             return true;
         }
 
@@ -368,5 +407,61 @@ class PageTreePage extends FilamentPage
         }
 
         return Gate::allows($ability, $target);
+    }
+
+    private function saveEditPage(): void
+    {
+        $record = $this->getPageModel()::find($this->activePageId);
+
+        if (!$record instanceof Page) {
+            return;
+        }
+
+        $this->authorizePageAction('update', $record, enforce: true);
+
+        $data = $this->pageForm->getState();
+
+        if (($data['slug'] ?? null) === null && !empty($data['title'])) {
+            $data['slug'] = Str::slug($data['title']);
+        }
+
+        if (($data['slug'] ?? null) === '/' && $record->children()->exists()) {
+            Notification::make()
+                ->title('Cannot set slug to "/" because this page has children')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $record->update($data);
+        $this->pageForm->model($record)->saveRelationships();
+
+        Notification::make()
+            ->title('Page updated')
+            ->success()
+            ->send();
+    }
+
+    private function saveCreatePage(): void
+    {
+        $model = $this->getPageModel();
+        $this->authorizePageAction('create', $model, enforce: true);
+
+        $data = $this->pageForm->getState();
+
+        if (($data['slug'] ?? null) === null && !empty($data['title'])) {
+            $data['slug'] = Str::slug($data['title']);
+        }
+
+        $page = $model::create($data);
+        $this->pageForm->model($page)->saveRelationships();
+
+        Notification::make()
+            ->title('Page created')
+            ->success()
+            ->send();
+
+        $this->selectPage($page->id);
     }
 }

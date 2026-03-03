@@ -7,6 +7,7 @@ namespace Bambamboole\FilamentPages\Actions;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
@@ -19,8 +20,9 @@ class GenerateOgImageAction
             ->label('Generate')
             ->icon(Heroicon::OutlinedSparkles)
             ->color('gray')
+            ->cancelParentActions(false)
             ->visible(fn (): bool => class_exists(Browsershot::class))
-            ->action(function (Page $record): void {
+            ->action(function (Page $record, Set $set): void {
                 if (! $record->exists) {
                     Notification::make()
                         ->title('Please save the page first')
@@ -49,7 +51,9 @@ class GenerateOgImageAction
                     ->save($tempPath);
 
                 $record->clearMediaCollection('og-image');
-                $record->addMedia($tempPath)->toMediaCollection('og-image', 'public');
+                $media = $record->addMedia($tempPath)->toMediaCollection('og-image', 'public');
+
+                $set('og_image', [$media->uuid]);
 
                 Notification::make()
                     ->title('OG image generated')
