@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
+use Bambamboole\FilamentPages\Filament\Pages\ManagePages;
 use Bambamboole\FilamentPages\Models\Page;
 use Workbench\App\Models\User;
 
@@ -11,7 +11,7 @@ beforeEach(function () {
 });
 
 it('can render the tree page', function () {
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->assertSuccessful();
 });
 
@@ -19,7 +19,7 @@ it('displays pages in the tree', function () {
     $parent = Page::factory()->create(['title' => 'About']);
     $child = Page::factory()->withParent($parent)->create(['title' => 'Team']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->assertSuccessful()
         ->assertSee('About')
         ->assertSee('Team');
@@ -30,7 +30,7 @@ it('reorders pages via reorderTree', function () {
     $second = Page::factory()->create(['title' => 'Second', 'order' => 1]);
     $third = Page::factory()->create(['title' => 'Third', 'order' => 2]);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('reorderTree', [
             ['id' => $third->id, 'children' => []],
             ['id' => $first->id, 'children' => []],
@@ -48,7 +48,7 @@ it('nests pages and updates slug_path via reorderTree', function () {
 
     expect($child->slug_path)->toBe('/team');
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('reorderTree', [
             ['id' => $parent->id, 'children' => [
                 ['id' => $child->id, 'children' => []],
@@ -62,7 +62,7 @@ it('nests pages and updates slug_path via reorderTree', function () {
 it('shows Draft badge for unpublished pages', function () {
     Page::factory()->draft()->create(['title' => 'Draft Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->assertSee('Draft Page')
         ->assertSee('Draft');
 });
@@ -70,7 +70,7 @@ it('shows Draft badge for unpublished pages', function () {
 it('shows Published badge for published pages', function () {
     Page::factory()->published()->create(['title' => 'Live Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->assertSee('Live Page')
         ->assertSee('Published');
 });
@@ -78,7 +78,7 @@ it('shows Published badge for published pages', function () {
 it('shows Scheduled badge for scheduled pages', function () {
     Page::factory()->scheduled()->create(['title' => 'Future Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->assertSee('Future Page')
         ->assertSee('Scheduled');
 });
@@ -88,7 +88,7 @@ it('can update published_at via updatePublishedAt action', function () {
 
     $publishDate = now()->subHour()->format('Y-m-d H:i:s');
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->callAction('updatePublishedAt', data: [
             'published_at' => $publishDate,
         ], arguments: [
@@ -101,7 +101,7 @@ it('can update published_at via updatePublishedAt action', function () {
 it('can clear published_at via updatePublishedAt action', function () {
     $page = Page::factory()->published()->create(['title' => 'Published Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->callAction('updatePublishedAt', data: [
             'published_at' => null,
         ], arguments: [
@@ -114,7 +114,7 @@ it('can clear published_at via updatePublishedAt action', function () {
 it('selects a page and sets form state', function () {
     $page = Page::factory()->create(['title' => 'My Page', 'slug' => 'my-page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('selectPage', $page->id)
         ->assertSet('formMode', 'edit')
         ->assertSet('activePageId', $page->id)
@@ -124,7 +124,7 @@ it('selects a page and sets form state', function () {
 it('can edit a page via inline form', function () {
     $page = Page::factory()->create(['title' => 'Old Title', 'slug' => 'old-title']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('selectPage', $page->id)
         ->fillForm([
             'title' => 'New Title',
@@ -145,7 +145,7 @@ it('shows error when editing page slug to / while it has children', function () 
     $parent = Page::factory()->create(['title' => 'Parent', 'slug' => 'parent']);
     Page::factory()->withParent($parent)->create(['title' => 'Child', 'slug' => 'child']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('selectPage', $parent->id)
         ->fillForm([
             'title' => 'Parent',
@@ -162,7 +162,7 @@ it('shows error when editing page slug to / while it has children', function () 
 });
 
 it('can create a page via inline form', function () {
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('startCreatePage')
         ->assertSet('formMode', 'create')
         ->assertSet('activePageId', null)
@@ -183,7 +183,7 @@ it('can create a page via inline form', function () {
 });
 
 it('switches to edit mode after creating a page', function () {
-    $component = livewire(PageTreePage::class)
+    $component = livewire(ManagePages::class)
         ->call('startCreatePage')
         ->fillForm([
             'title' => 'Created Page',
@@ -203,7 +203,7 @@ it('switches to edit mode after creating a page', function () {
 it('deselects page and clears form state', function () {
     $page = Page::factory()->create(['title' => 'Test Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('selectPage', $page->id)
         ->assertSet('formMode', 'edit')
         ->call('deselectPage')
@@ -215,7 +215,7 @@ it('deselects page and clears form state', function () {
 it('deselects page when active page is deleted', function () {
     $page = Page::factory()->create(['title' => 'Doomed Page']);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('selectPage', $page->id)
         ->assertSet('activePageId', $page->id)
         ->callAction('deletePage', arguments: ['pageId' => $page->id])
@@ -229,7 +229,7 @@ it('rejects reorderTree when pages are nested under homepage', function () {
     $homepage = Page::factory()->home()->create(['title' => 'Home']);
     $about = Page::factory()->create(['title' => 'About', 'slug' => 'about', 'order' => 1]);
 
-    livewire(PageTreePage::class)
+    livewire(ManagePages::class)
         ->call('reorderTree', [
             ['id' => $homepage->id, 'children' => [
                 ['id' => $about->id, 'children' => []],

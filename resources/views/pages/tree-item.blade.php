@@ -1,6 +1,6 @@
 <div class="page-item" data-id="{{ $page->id }}" wire:key="page-item-{{ $page->id }}" x-data="{ collapsed: false }">
     <div class="page-item-row {{ $this->activePageId === $page->id ? 'page-item-active' : '' }}">
-        <div class="flex items-center">
+        <div class="flex flex-1 min-w-0 items-center">
             <div class="border-r border-gray-200 dark:border-gray-700 cursor-grab">
                 <x-filament::icon
                     icon="heroicon-m-bars-2"
@@ -20,18 +20,13 @@
                     />
                 </button>
             @endif
-            <div class="ml-2 flex items-center gap-2">
+            <button
+                type="button"
+                class="ml-2 flex flex-1 min-w-0 items-center cursor-pointer text-left"
+                x-on:click="$wire.selectPage({{ $page->id }})"
+            >
                 <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $page->title }}</span>
-                @if($page->isPublished() && $page->frontendUrl())
-                    <a
-                        href="{{ $page->frontendUrl() }}"
-                        target="_blank"
-                        class="text-xs text-gray-500 hover:text-primary-500 hover:underline dark:text-gray-400 dark:hover:text-primary-400"
-                    >{{ $page->slug_path }}</a>
-                @else
-                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $page->slug_path }}</span>
-                @endif
-            </div>
+            </button>
         </div>
         <div class="flex gap-1 items-center">
             @if($page->isPublished())
@@ -57,12 +52,17 @@
                     Draft
                 </x-filament::badge>
             @endif
-            <x-filament::icon-button
-                icon="heroicon-m-pencil-square"
-                color="gray"
-                size="sm"
-                x-on:click="$wire.selectPage({{ $page->id }})"
-            />
+            @if($page->isPublished() && $page->frontendUrl())
+                <x-filament::icon-button
+                    icon="heroicon-m-arrow-top-right-on-square"
+                    color="gray"
+                    size="sm"
+                    tag="a"
+                    :href="$page->frontendUrl()"
+                    target="_blank"
+                    :tooltip="$page->localePrefixedPath()"
+                />
+            @endif
             <x-filament::icon-button
                 icon="heroicon-m-trash"
                 color="gray"
@@ -104,7 +104,7 @@
         }"
     >
         @foreach($page->children as $child)
-            @include('filament-pages::pages.page-tree-item', ['page' => $child])
+            @include('filament-pages::pages.tree-item', ['page' => $child])
         @endforeach
     </div>
 </div>

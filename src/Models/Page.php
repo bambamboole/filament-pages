@@ -112,7 +112,7 @@ class Page extends Model implements HasMedia, Linkable
     /**
      * Build the URL path including locale prefix when locales are configured.
      */
-    private function localePrefixedPath(): string
+    public function localePrefixedPath(): string
     {
         $service = app(FilamentPagesService::class);
 

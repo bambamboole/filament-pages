@@ -54,7 +54,7 @@ FilamentPagesPlugin::make()
     ->seoForm(fn () => [
         TextInput::make('canonical_url'),
     ])
-    ->treeItemActions(fn (PageTreePage $page) => [
+    ->treeItemActions(fn (ManagePages $page) => [
         Action::make('duplicate')->action(fn (array $arguments) => /* ... */),
     ])
     ->previewView('my-custom-preview-view')
@@ -226,7 +226,7 @@ echo $page->renderBlocks();
 
 ## Page Tree
 
-The plugin provides an interactive page tree at `/page-tree` in your Filament panel. You can:
+The plugin provides an interactive page tree at `/pages` in your Filament panel. You can:
 - Drag and drop to reorder and nest pages
 - Create, edit, and delete pages via slide-over modals
 - Publish/unpublish with datetime scheduling
@@ -237,7 +237,7 @@ Custom actions can be added to tree items:
 
 ```php
 FilamentPagesPlugin::make()
-    ->treeItemActions(fn (PageTreePage $page) => [
+    ->treeItemActions(fn (ManagePages $page) => [
         Action::make('duplicate')->action(fn (array $arguments) => /* ... */),
     ])
 ```

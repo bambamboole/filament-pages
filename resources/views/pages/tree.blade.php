@@ -36,7 +36,7 @@
             }"
         >
             @foreach($this->getTreeItems() as $page)
-                @include('filament-pages::pages.page-tree-item', ['page' => $page])
+                @include('filament-pages::pages.tree-item', ['page' => $page])
             @endforeach
         </div>
     @else

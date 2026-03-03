@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Blocks\PageBlock;
-use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
+use Bambamboole\FilamentPages\Filament\Pages\ManagePages;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Closure;
@@ -17,8 +17,6 @@ class FilamentPagesPlugin implements Plugin
 {
     /** @var array<Closure> */
     protected array $treeItemActionCallbacks = [];
-
-    protected ?string $previewView = null;
 
     /** @var array<Closure> */
     protected array $seoFormCallbacks = [];
@@ -65,18 +63,6 @@ class FilamentPagesPlugin implements Plugin
             ->toArray();
     }
 
-    public function previewView(string $view): static
-    {
-        $this->previewView = $view;
-
-        return $this;
-    }
-
-    public function getPreviewView(): string
-    {
-        return $this->previewView ?? 'filament-pages::preview';
-    }
-
     public function seoForm(Closure $callback): static
     {
         $this->seoFormCallbacks[] = $callback;
@@ -110,7 +96,7 @@ class FilamentPagesPlugin implements Plugin
     public function register(Panel $panel): void
     {
         $panel->pages([
-            PageTreePage::class,
+            ManagePages::class,
         ]);
 
         $hasFilamentPeek = collect($panel->getPlugins())
@@ -119,11 +105,6 @@ class FilamentPagesPlugin implements Plugin
         if (!$hasFilamentPeek) {
             $panel->plugin(FilamentPeekPlugin::make());
         }
-
-        $panel->renderHook(
-            'panels::body.end',
-            fn (): string => '<style>.filament-peek-modal { z-index: 50 !important; }</style>',
-        );
     }
 
     public function boot(Panel $panel): void

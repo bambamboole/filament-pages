@@ -26,7 +26,7 @@ use Pboivin\FilamentPeek\Pages\Concerns\HasPreviewModal;
 /**
  * @property-read Schema $pageForm
  */
-class PageTreePage extends FilamentPage
+class ManagePages extends FilamentPage
 {
     use HasPreviewModal;
 
@@ -36,7 +36,7 @@ class PageTreePage extends FilamentPage
 
     protected static ?string $title = 'Pages';
 
-    protected static ?string $slug = 'page-tree';
+    protected static ?string $slug = 'pages';
 
     protected Width|string|null $maxContentWidth = Width::Full;
 
@@ -67,7 +67,7 @@ class PageTreePage extends FilamentPage
 
     protected function getPreviewModalView(): ?string
     {
-        return FilamentPagesPlugin::get()->getPreviewView();
+        return 'filament-pages::preview';
     }
 
     protected function getPreviewModalDataRecordKey(): string
@@ -99,7 +99,7 @@ class PageTreePage extends FilamentPage
     {
         return $schema
             ->components([
-                View::make('filament-pages::pages.page-tree-layout'),
+                View::make('filament-pages::pages.tree-layout'),
             ]);
     }
 
