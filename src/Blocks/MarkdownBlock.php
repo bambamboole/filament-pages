@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace Bambamboole\FilamentPages\Blocks;
 
 use Bambamboole\FilamentPages\Renderer\MarkdownRenderer;
@@ -27,7 +28,7 @@ class MarkdownBlock extends PageBlock
             ->label('Markdown')
             ->icon(Heroicon::OutlinedDocumentText)
             ->schema([
-                Hidden::make('heading_permalinks')->default(true),
+                Hidden::make('heading_permalinks')->default(false),
                 Hidden::make('external_links')->default(true),
                 MarkdownEditor::make('content')
                     ->label('Content')
@@ -36,13 +37,13 @@ class MarkdownBlock extends PageBlock
                         Action::make('toggle_heading_permalinks')
                             ->iconButton()
                             ->icon(Heroicon::OutlinedHashtag)
-                            ->color(fn (Get $get): string => $get('heading_permalinks') ? 'primary' : 'gray')
+                            ->color(fn (Get $get): string => empty($get('external_links')) ? 'gray' : 'primary')
                             ->tooltip('Toggle heading permalinks')
                             ->action(fn (Get $get, Set $set): mixed => $set('heading_permalinks', !$get('heading_permalinks'))),
                         Action::make('toggle_external_links')
                             ->iconButton()
                             ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
-                            ->color(fn (Get $get): string => $get('external_links') ? 'primary' : 'gray')
+                            ->color(fn (Get $get): string => empty($get('external_links')) ? 'gray' : 'primary')
                             ->tooltip('Toggle external link attributes')
                             ->action(fn (Get $get, Set $set): mixed => $set('external_links', !$get('external_links'))),
                     ])
