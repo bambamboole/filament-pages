@@ -6,6 +6,27 @@
 
 A Filament plugin for managing hierarchical, block-based content pages. Features a drag-and-drop page tree, extensible block system (Markdown, Image out of the box), nested pages with automatic slug path computation, multi-locale support, SEO integration, and live preview.
 
+## Features
+
+- **Page Tree** — Interactive drag-and-drop tree for reordering and nesting pages
+- **Block Builder** — Flexible content composition with an extensible block system
+- **Markdown Block** — Rich editor with table of contents, heading permalinks, GFM support, and optional Torchlight syntax highlighting
+- **Image Block** — Spatie Media Library integration with responsive images and an image editor
+- **Custom Blocks & Layouts** — Artisan generators for scaffolding your own blocks and layouts
+- **Multi-Locale** — Locale-scoped page trees with automatic route prefixing and browser language detection
+- **SEO** — Built-in SEO metadata tab with extensible fields and optional OG image generation via Browsershot
+- **Live Preview** — Instant page preview powered by Filament Peek
+- **Publishing Workflow** — Draft, published, and scheduled states with `published_at` datetime
+- **Authorization** — Laravel policy support for `create`, `update`, `delete`, and `reorder` abilities
+- **Frontend Routing** — Catch-all route registration that resolves pages by slug path and locale
+- **Hierarchical Slugs** — Automatic slug path computation based on the page tree hierarchy
+
+## Screenshots
+
+| Page Editor | SEO Tab |
+|:-----------:|:-------:|
+| ![Page Editor](art/page-tree.png) | ![SEO Tab](art/page-seo.png) |
+
 ## Installation
 
 ```bash
@@ -177,8 +198,14 @@ use Bambamboole\FilamentPages\Layouts\PageLayout;
 
 class LandingPageLayout implements PageLayout
 {
-    public static function name(): string { return 'landing'; }
-    public static function label(): string { return 'Landing Page'; }
+    public static function name(): string 
+    { 
+        return 'landing'; 
+    }
+    
+    public static function label(): string { 
+        return 'Landing Page';
+    }
 
     public function render(Request $request, Page $page): View
     {
