@@ -6,7 +6,9 @@ namespace Bambamboole\FilamentPages\Models;
 use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +23,19 @@ use RalphJSmit\Laravel\SEO\Support\SEOData;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @property string $title
+ * @property ?string $slug
+ * @property string $slug_path
+ * @property string $type
+ * @property ?int $parent_id
+ * @property ?string $locale
+ * @property int $order
+ * @property ?CarbonInterface $published_at
+ * @property ?string $layout
+ * @property ?int $author_id
+ * @property ?array<int, array{type: string, data: array<string, mixed>}> $blocks
+ */
 class Page extends Model implements HasMedia, Linkable
 {
     use HasFactory;
@@ -52,7 +67,7 @@ class Page extends Model implements HasMedia, Linkable
         $ogImageUrl = $this->getFirstMediaUrl('og-image') ?: null;
 
         if (!$ogImageUrl) {
-            $defaultPath = config('filament-pages.seo.defaults.default_og_image');
+            $defaultPath = FilamentPages::seoDefaults()['default_og_image'];
 
             if ($defaultPath) {
                 $ogImageUrl = asset($defaultPath);
@@ -113,9 +128,13 @@ class Page extends Model implements HasMedia, Linkable
     {
         static::addGlobalScope('type', fn (Builder $query) => $query->where('type', static::$pageType));
 
+        static::creating(function (Page $page): void {
+            $page->author_id ??= auth()->id();
+        });
+
         static::saving(function (Page $page): void {
             $page->type ??= static::$pageType;
-            if ($page->slug === null && !empty($page->title)) {
+            if ($page->slug === null) {
                 $page->slug = Str::slug($page->title);
             }
 
@@ -125,7 +144,7 @@ class Page extends Model implements HasMedia, Linkable
                 ]);
             }
 
-            if (!$page->exists && $page->order === null) {
+            if (!$page->exists) {
                 $page->order = (static::where('parent_id', $page->parent_id)->max('order') ?? -1) + 1;
             }
 
@@ -143,6 +162,12 @@ class Page extends Model implements HasMedia, Linkable
                 throw new \LogicException("Cannot delete page [{$page->id}] because it has child pages. Move or delete children first.");
             }
         });
+    }
+
+    /** @return BelongsTo<\Illuminate\Database\Eloquent\Model, $this> */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(config('auth.providers.users.model'), 'author_id');
     }
 
     /** @return BelongsTo<self, $this> */
@@ -166,7 +191,7 @@ class Page extends Model implements HasMedia, Linkable
      * Load all pages flat and build a nested collection.
      * Unlike eager-loading children.children.children, this supports unlimited depth.
      *
-     * @return Collection<int, self>
+     * @return Collection<int, static>
      */
     public function getTreeItems(): Collection
     {
@@ -174,7 +199,7 @@ class Page extends Model implements HasMedia, Linkable
     }
 
     /**
-     * @return Collection<int, self>
+     * @return Collection<int, static>
      */
     public static function buildTree(?string $locale = null): Collection
     {
@@ -291,7 +316,7 @@ class Page extends Model implements HasMedia, Linkable
             return '';
         }
 
-        $data = $blockClass::mutateData($block['data'] ?? [], $this);
+        $data = $blockClass::mutateData($block['data'], $this);
 
         return view($blockClass::viewName(), $data)->render();
     }
@@ -314,10 +339,7 @@ class Page extends Model implements HasMedia, Linkable
     private function getBlockMap(): array
     {
         /** @var array<class-string<PageBlock>> $blockClasses */
-        $blockClasses = config('filament-pages.blocks', [
-            \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
-            \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
-        ]);
+        $blockClasses = FilamentPages::blockClasses();
 
         $map = [];
         foreach ($blockClasses as $class) {

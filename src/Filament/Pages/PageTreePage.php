@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Filament\Pages;
 
 use BackedEnum;
+use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Filament\Forms\PageFormSchema;
 use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
@@ -53,15 +54,11 @@ class PageTreePage extends FilamentPage
 
     public function mount(): void
     {
-        $plugin = FilamentPagesPlugin::get();
-
-        if ($plugin->hasLocales()) {
-            $this->locale = array_key_first($plugin->getLocales());
+        if (FilamentPages::hasLocales()) {
+            $this->locale = array_key_first(FilamentPages::locales());
         }
 
-        if ($plugin->isPreviewEnabled()) {
-            Peek::registerPreviewModal();
-        }
+        Peek::registerPreviewModal();
 
         if ($this->editPageId !== null) {
             $this->selectPage($this->editPageId);
@@ -192,7 +189,7 @@ class PageTreePage extends FilamentPage
 
     public function hasLocales(): bool
     {
-        return FilamentPagesPlugin::get()->hasLocales();
+        return FilamentPages::hasLocales();
     }
 
     /**
@@ -200,7 +197,7 @@ class PageTreePage extends FilamentPage
      */
     public function getLocaleOptions(): array
     {
-        return FilamentPagesPlugin::get()->getLocales();
+        return FilamentPages::locales();
     }
 
     /**
@@ -208,7 +205,7 @@ class PageTreePage extends FilamentPage
      */
     protected function getPageModel(): string
     {
-        return config('filament-pages.model', Page::class);
+        return FilamentPages::model();
     }
 
     /**
@@ -351,21 +348,16 @@ class PageTreePage extends FilamentPage
     {
         $actions = [];
 
-        if (FilamentPagesPlugin::get()->hasLocales()) {
+        if (FilamentPages::hasLocales()) {
             $actions[] = SelectAction::make('locale')
                 ->label('Locale')
-                ->options(['' => 'No Locale'] + FilamentPagesPlugin::get()->getLocales());
+                ->options(['' => 'No Locale'] + FilamentPages::locales());
         }
 
         $actions[] = Action::make('createPage')
             ->label('New Page')
             ->visible(fn (): bool => $this->authorizePageAction('create', $this->getPageModel()))
             ->action(fn () => $this->startCreatePage());
-
-        $actions[] = Action::make('tableView')
-            ->label('Table View')
-            ->icon(Heroicon::OutlinedTableCells)
-            ->url(FilamentPagesPlugin::get()->getResource()::getUrl());
 
         return $actions;
     }

@@ -5,6 +5,7 @@ namespace Bambamboole\FilamentPages\Database\Factories;
 
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class PageFactory extends Factory
@@ -67,6 +68,13 @@ class PageFactory extends Factory
     {
         return $this->state(fn () => [
             'published_at' => now()->addWeek(),
+        ]);
+    }
+
+    public function withAuthor(Model $user): static
+    {
+        return $this->state(fn () => [
+            'author_id' => $user->getKey(),
         ]);
     }
 }

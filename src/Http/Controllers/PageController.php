@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Http\Controllers;
 
+use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Layouts\DefaultLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class PageController
         $locale = $request->route('locale');
         $path = $request->route('path');
         $slugPath = empty($path) ? '/' : '/'.$path;
-        $model = config('filament-pages.model');
+        $model = FilamentPages::model();
 
         $page = $model::query()
             ->where('locale', $locale)
@@ -30,7 +31,7 @@ class PageController
     private function resolveLayout(?string $layoutKey): PageLayout
     {
         /** @var array<class-string<PageLayout>> $layoutClasses */
-        $layoutClasses = config('filament-pages.layouts', []);
+        $layoutClasses = FilamentPages::layouts();
 
         if ($layoutClasses === []) {
             return new DefaultLayout;

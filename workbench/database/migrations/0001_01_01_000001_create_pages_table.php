@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('order')->default(0);
             $table->json('blocks')->nullable();
             $table->string('layout')->nullable();
+            $table->foreignId('author_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamp('published_at')->nullable();
             $table->softDeletes();

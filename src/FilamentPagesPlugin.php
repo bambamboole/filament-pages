@@ -3,35 +3,22 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages;
 
-use Bambamboole\FilamentPages\Blocks\ImageBlock;
-use Bambamboole\FilamentPages\Blocks\MarkdownBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
-use Bambamboole\FilamentPages\Filament\Resources\PageResource;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
+use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Panel;
-use Filament\Resources\Resource;
 use Pboivin\FilamentPeek\FilamentPeekPlugin;
 
 class FilamentPagesPlugin implements Plugin
 {
-    /** @var class-string<resource>|null */
-    protected ?string $resource = null;
-
-    /** @var array<string, string> */
-    protected array $locales = [];
-
     /** @var array<Closure> */
     protected array $treeItemActionCallbacks = [];
 
-    protected bool $previewEnabled = false;
-
     protected ?string $previewView = null;
-
-    protected bool $seoEnabled = false;
 
     /** @var array<Closure> */
     protected array $seoFormCallbacks = [];
@@ -42,34 +29,11 @@ class FilamentPagesPlugin implements Plugin
     }
 
     /**
-     * @param  array<string, string>  $locales  e.g. ['en' => 'English', 'de' => 'Deutsch']
-     */
-    public function locales(array $locales): static
-    {
-        $this->locales = $locales;
-
-        return $this;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function getLocales(): array
-    {
-        return $this->locales;
-    }
-
-    public function hasLocales(): bool
-    {
-        return $this->locales !== [];
-    }
-
-    /**
      * @return array<class-string<PageBlock>>
      */
     public function getBlockClasses(): array
     {
-        return config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
+        return app(FilamentPagesService::class)->blockClasses();
     }
 
     /**
@@ -88,7 +52,7 @@ class FilamentPagesPlugin implements Plugin
      */
     public function getLayouts(): array
     {
-        return config('filament-pages.layouts', []);
+        return app(FilamentPagesService::class)->layouts();
     }
 
     /**
@@ -101,52 +65,16 @@ class FilamentPagesPlugin implements Plugin
             ->toArray();
     }
 
-    /**
-     * @param  class-string<resource>  $resource
-     */
-    public function resource(string $resource): static
+    public function previewView(string $view): static
     {
-        $this->resource = $resource;
-
-        return $this;
-    }
-
-    /**
-     * @return class-string<resource>
-     */
-    public function getResource(): string
-    {
-        return $this->resource ?? config('filament-pages.resource', PageResource::class);
-    }
-
-    public function withPreview(?string $view = null): static
-    {
-        $this->previewEnabled = true;
         $this->previewView = $view;
 
         return $this;
     }
 
-    public function isPreviewEnabled(): bool
-    {
-        return $this->previewEnabled;
-    }
-
     public function getPreviewView(): string
     {
         return $this->previewView ?? 'filament-pages::preview';
-    }
-
-    public function withSeo(): static
-    {
-        $this->seoEnabled = true;
-
-        return $this;
-    }
-
-    public function isSeoEnabled(): bool
-    {
-        return $this->seoEnabled;
     }
 
     public function seoForm(Closure $callback): static
@@ -181,27 +109,21 @@ class FilamentPagesPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel
-            ->resources([
-                $this->getResource(),
-            ])
-            ->pages([
-                PageTreePage::class,
-            ]);
+        $panel->pages([
+            PageTreePage::class,
+        ]);
 
-        if ($this->previewEnabled) {
-            $hasFilamentPeek = collect($panel->getPlugins())
-                ->contains(fn (Plugin $plugin): bool => $plugin instanceof FilamentPeekPlugin);
+        $hasFilamentPeek = collect($panel->getPlugins())
+            ->contains(fn (Plugin $plugin): bool => $plugin instanceof FilamentPeekPlugin);
 
-            if (!$hasFilamentPeek) {
-                $panel->plugin(FilamentPeekPlugin::make());
-            }
-
-            $panel->renderHook(
-                'panels::body.end',
-                fn (): string => '<style>.filament-peek-modal { z-index: 50 !important; }</style>',
-            );
+        if (!$hasFilamentPeek) {
+            $panel->plugin(FilamentPeekPlugin::make());
         }
+
+        $panel->renderHook(
+            'panels::body.end',
+            fn (): string => '<style>.filament-peek-modal { z-index: 50 !important; }</style>',
+        );
     }
 
     public function boot(Panel $panel): void

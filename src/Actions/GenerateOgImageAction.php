@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Actions;
 
+use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -31,15 +32,17 @@ class GenerateOgImageAction
                     return;
                 }
 
-                $title = $record->seo?->title
+                $seoDefaults = FilamentPages::seoDefaults();
+
+                $title = $record->seo->title
                     ?? $record->title
-                    ?? config('filament-pages.seo.defaults.og_title', '');
+                    ?? $seoDefaults['og_title'];
 
-                $description = $record->seo?->description
+                $description = $record->seo->description
                     ?? self::extractDescription($record)
-                    ?? config('filament-pages.seo.defaults.og_description', '');
+                    ?? $seoDefaults['og_description'];
 
-                $url = $record->frontendUrl() ?? url('/');
+                $url = $record->frontendUrl();
 
                 $html = view('filament-pages::og-image', ['title' => $title, 'description' => $description, 'url' => $url])->render();
 
@@ -66,7 +69,7 @@ class GenerateOgImageAction
         $blocks = $record->blocks ?? [];
 
         foreach ($blocks as $block) {
-            if (($block['type'] ?? '') === 'markdown' && !empty($block['data']['content'])) {
+            if ($block['type'] === 'markdown' && !empty($block['data']['content'])) {
                 return Str::limit(strip_tags((string) $block['data']['content']), 160);
             }
         }

@@ -47,34 +47,38 @@ Add the plugin views to your Tailwind CSS content paths:
 
 ## Configuration
 
-The plugin is configured through the fluent API on `FilamentPagesPlugin`:
+The plugin is configured through the fluent API on `FilamentPagesPlugin` and the published config file.
 
 ```php
 FilamentPagesPlugin::make()
-    ->blocks([
-        MarkdownBlock::class,
-        ImageBlock::class,
-        MyCustomBlock::class,
+    ->seoForm(fn () => [
+        TextInput::make('canonical_url'),
     ])
-    ->layouts([
-        DefaultLayout::class,
-        LandingPageLayout::class,
+    ->treeItemActions(fn (PageTreePage $page) => [
+        Action::make('duplicate')->action(fn (array $arguments) => /* ... */),
     ])
-    ->locales([
-        'en' => 'English',
-        'de' => 'Deutsch',
-    ])
-    ->withSeo()
-    ->withPreview()
+    ->previewView('my-custom-preview-view')
+```
+
+Blocks and layouts are configured in the `config/filament-pages.php` config file:
+
+```php
+// config/filament-pages.php
+'blocks' => [
+    \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
+    \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
+    \App\Blocks\MyCustomBlock::class,
+],
+
+'layouts' => [
+    \Bambamboole\FilamentPages\Layouts\DefaultLayout::class,
+    \App\Layouts\LandingPageLayout::class,
+],
 ```
 
 ### Blocks
 
-Register block types that are available in the page builder. Each block must extend `Bambamboole\FilamentPages\Blocks\PageBlock`:
-
-```php
-->blocks([MarkdownBlock::class, ImageBlock::class])
-```
+Register block types in the `blocks` config array. Each block must extend `Bambamboole\FilamentPages\Blocks\PageBlock`.
 
 Two blocks ship out of the box:
 - **MarkdownBlock** — Rich markdown editor with optional table of contents (top/left/right positioning), front matter parsing, and Torchlight syntax highlighting.
@@ -82,29 +86,25 @@ Two blocks ship out of the box:
 
 ### Layouts
 
-Layouts control how pages render on the frontend. Each layout implements `Bambamboole\FilamentPages\Layouts\PageLayout`:
-
-```php
-->layouts([DefaultLayout::class, CustomLayout::class])
-```
+Layouts control how pages render on the frontend. Each layout implements `Bambamboole\FilamentPages\Layouts\PageLayout`. Register them in the `layouts` config array.
 
 ### Multi-Locale
 
-Enable multi-language content by passing locale options:
+Enable multi-language content by configuring locales in the config file:
 
 ```php
-->locales(['en' => 'English', 'de' => 'Deutsch'])
+// config/filament-pages.php
+'routing' => [
+    'prefix' => '',
+    'locales' => ['en' => 'English', 'de' => 'Deutsch'],
+],
 ```
 
 When locales are enabled, the page tree filters by locale and frontend routes include a `{locale}` prefix.
 
 ### SEO
 
-Enable the SEO tab on page forms (powered by `ralphjsmit/laravel-filament-seo`):
-
-```php
-->withSeo()
-```
+SEO is always enabled. Every page form includes an SEO tab (powered by `ralphjsmit/laravel-filament-seo`).
 
 Extend the SEO form with custom fields:
 
@@ -116,11 +116,10 @@ Extend the SEO form with custom fields:
 
 ### Preview
 
-Enable live preview modals (powered by `pboivin/filament-peek`):
+Live preview is always enabled (powered by `pboivin/filament-peek`). To use a custom preview view:
 
 ```php
-->withPreview()
-->withPreview('my-custom-preview-view') // optional custom view
+->previewView('my-custom-preview-view')
 ```
 
 ## Creating Custom Blocks
@@ -188,9 +187,35 @@ class LandingPageLayout implements PageLayout
 }
 ```
 
+Include `@filamentPagesStyles` in your layout's `<head>` to load the frontend CSS:
+
+```blade
+<head>
+    @filamentPagesStyles
+</head>
+```
+
+## Route Registration
+
+Register the frontend page routes in your `routes/web.php`:
+
+```php
+use Bambamboole\FilamentPages\Facades\FilamentPages;
+
+FilamentPages::routes();
+```
+
+This registers catch-all routes that resolve pages by their slug path. You can pass a prefix:
+
+```php
+FilamentPages::routes('pages'); // all pages under /pages/*
+```
+
+When locales are configured, routes are automatically prefixed with `{locale}`.
+
 ## Frontend Rendering
 
-When routing is enabled (the default), the package registers catch-all routes that resolve pages by their slug path. Pages are rendered through their assigned layout using `{!! $page->renderBlocks() !!}`.
+Pages are rendered through their assigned layout using `{!! $page->renderBlocks() !!}`.
 
 You can also render blocks programmatically:
 
@@ -216,6 +241,18 @@ FilamentPagesPlugin::make()
         Action::make('duplicate')->action(fn (array $arguments) => /* ... */),
     ])
 ```
+
+## Authorization
+
+The package supports Laravel policies for access control. Create a policy for your page model to restrict actions:
+
+```bash
+php artisan make:policy PagePolicy --model=Page
+```
+
+Supported abilities: `create`, `update`, `delete`, `reorder`.
+
+The package is **permissive by default** — when no policy is registered, all actions are allowed. Once a policy exists, only explicitly allowed abilities are permitted.
 
 ## Testing
 

@@ -10,15 +10,13 @@
                 @php
                     $activeRecord = $this->getPageModel()::find($this->activePageId);
                 @endphp
-                @if(Bambamboole\FilamentPages\FilamentPagesPlugin::get()->isPreviewEnabled())
-                    <x-filament::button
-                        size="sm"
-                        color="gray"
-                        wire:click="previewPage"
-                    >
-                        {{ __('filament-peek::ui.preview-action-label') }}
-                    </x-filament::button>
-                @endif
+                <x-filament::button
+                    size="sm"
+                    color="gray"
+                    wire:click="previewPage"
+                >
+                    {{ __('filament-peek::ui.preview-action-label') }}
+                </x-filament::button>
                 @if($activeRecord?->isPublished())
                     <x-filament::button
                         tag="a"
@@ -31,13 +29,27 @@
                         Visit Page
                     </x-filament::button>
                 @endif
-            @elseif($this->formMode === 'create' && Bambamboole\FilamentPages\FilamentPagesPlugin::get()->isPreviewEnabled())
+                <x-filament::button
+                    size="sm"
+                    wire:click="savePage"
+                    wire:loading.attr="disabled"
+                >
+                    Save
+                </x-filament::button>
+            @elseif($this->formMode === 'create')
                 <x-filament::button
                     size="sm"
                     color="gray"
                     wire:click="previewPage"
                 >
                     {{ __('filament-peek::ui.preview-action-label') }}
+                </x-filament::button>
+                <x-filament::button
+                    size="sm"
+                    wire:click="savePage"
+                    wire:loading.attr="disabled"
+                >
+                    Create
                 </x-filament::button>
             @endif
         </div>

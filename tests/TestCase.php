@@ -20,6 +20,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\Concerns\WithWorkbench;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Pboivin\FilamentPeek\FilamentPeekServiceProvider;
 use RalphJSmit\Laravel\SEO\LaravelSEOServiceProvider;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\MediaLibrary\MediaLibraryServiceProvider;
@@ -50,6 +51,7 @@ class TestCase extends Orchestra
             InfolistsServiceProvider::class,
             LivewireServiceProvider::class,
             NotificationsServiceProvider::class,
+            FilamentPeekServiceProvider::class,
             SchemasServiceProvider::class,
             SupportServiceProvider::class,
             TablesServiceProvider::class,

@@ -80,6 +80,76 @@ it('falls back to default layout for unknown layout key', function () {
         ->assertSee('Fallback content');
 });
 
+it('renders heading permalinks by default', function () {
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => '## My Heading']],
+    ])->create([
+        'title' => 'Permalink Page',
+        'slug' => 'permalink-page',
+    ]);
+
+    $this->get('/permalink-page')
+        ->assertOk()
+        ->assertSee('title="Permalink">#</a>', false);
+});
+
+it('omits heading permalinks when disabled', function () {
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => '## My Heading', 'heading_permalinks' => false]],
+    ])->create([
+        'title' => 'No Permalink Page',
+        'slug' => 'no-permalink-page',
+    ]);
+
+    $this->get('/no-permalink-page')
+        ->assertOk()
+        ->assertDontSee('title="Permalink">#</a>', false);
+});
+
+it('renders external link attributes by default', function () {
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => '[Example](https://example.com)']],
+    ])->create([
+        'title' => 'External Link Page',
+        'slug' => 'external-link-page',
+    ]);
+
+    $this->get('/external-link-page')
+        ->assertOk()
+        ->assertSee('class="external-link"', false);
+});
+
+it('omits external link attributes when disabled', function () {
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => ['content' => '[Example](https://example.com)', 'external_links' => false]],
+    ])->create([
+        'title' => 'No External Link Page',
+        'slug' => 'no-external-link-page',
+    ]);
+
+    $this->get('/no-external-link-page')
+        ->assertOk()
+        ->assertDontSee('class="external-link"', false);
+});
+
+it('forces heading permalinks on when toc is enabled', function () {
+    Page::factory()->published()->withBlocks([
+        ['type' => 'markdown', 'data' => [
+            'content' => '## Toc Heading',
+            'heading_permalinks' => false,
+            'toc_position' => 'top',
+        ]],
+    ])->create([
+        'title' => 'Toc Forces Permalink',
+        'slug' => 'toc-forces-permalink',
+    ]);
+
+    $this->get('/toc-forces-permalink')
+        ->assertOk()
+        ->assertSee('title="Permalink">#</a>', false)
+        ->assertSee('table-of-contents', false);
+});
+
 it('renders multiple markdown blocks in order', function () {
     Page::factory()->published()->withBlocks([
         ['type' => 'markdown', 'data' => ['content' => 'First block']],

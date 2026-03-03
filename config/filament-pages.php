@@ -15,17 +15,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Filament Resource
-    |--------------------------------------------------------------------------
-    |
-    | The Filament resource used for the pages table view. Override this
-    | to customise columns, filters, or actions in the table.
-    |
-    */
-    'resource' => \Bambamboole\FilamentPages\Filament\Resources\PageResource::class,
-
-    /*
-    |--------------------------------------------------------------------------
     | Layouts
     |--------------------------------------------------------------------------
     |
@@ -68,6 +57,22 @@ return [
             'html_class' => 'heading-permalink',
             'symbol' => '#',
             'insert' => 'after',
+            'id_prefix' => 'content',
+            'fragment_prefix' => 'content',
+            'apply_id_to_heading' => false,
+            'heading_class' => '',
+            'title' => 'Permalink',
+            'aria_hidden' => true,
+            'min_heading_level' => 1,
+            'max_heading_level' => 6,
+        ],
+        'external_link' => [
+            'internal_hosts' => [],
+            'open_in_new_window' => true,
+            'html_class' => 'external-link',
+            'nofollow' => 'external',
+            'noopener' => 'external',
+            'noreferrer' => 'external',
         ],
         'table_of_contents' => [
             'html_class' => 'table-of-contents',
