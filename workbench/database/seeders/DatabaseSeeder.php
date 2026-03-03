@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Workbench\Database\Seeders;
 
 use Bambamboole\FilamentPages\Models\Page;
@@ -23,7 +22,7 @@ class DatabaseSeeder extends Seeder
 
         $home = Page::create([
             'title' => 'Home',
-            'slug' => 'home',
+            'slug' => '/',
             'locale' => 'en',
             'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Welcome\n\nWelcome to our website."]]],
             'published_at' => now(),
@@ -136,7 +135,7 @@ class DatabaseSeeder extends Seeder
 
         Page::create([
             'title' => 'Startseite',
-            'slug' => 'home',
+            'slug' => '/',
             'locale' => 'de',
             'blocks' => [['type' => 'markdown', 'data' => ['content' => "# Willkommen\n\nWillkommen auf unserer Webseite."]]],
             'published_at' => now(),

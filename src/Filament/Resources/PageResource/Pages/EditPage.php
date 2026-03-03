@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Filament\Resources\PageResource\Pages;
 
 use Bambamboole\FilamentPages\Filament\Resources\PageResource;

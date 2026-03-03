@@ -1,11 +1,11 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Commands\MakeBlockCommand;
 use Bambamboole\FilamentPages\Commands\MakeLayoutCommand;
+use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Filament\Support\Assets\Css;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
@@ -53,14 +53,17 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
         }
     }
 
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void
+    {
+        $this->app->singleton(FilamentPagesService::class, fn (): FilamentPagesService => new FilamentPagesService);
+    }
 
     public function packageBooted(): void
     {
         FilamentAsset::register(
             [
-                Css::make('filament-pages', __DIR__ . '/../resources/dist/css/filament-pages.css'),
-                Js::make('filament-pages', __DIR__ . '/../resources/dist/js/filament-pages.js'),
+                Css::make('filament-pages', __DIR__.'/../resources/dist/css/filament-pages.css'),
+                Js::make('filament-pages', __DIR__.'/../resources/dist/js/filament-pages.js'),
             ],
             'bambamboole/filament-pages'
         );
@@ -70,7 +73,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
 
         // Handle Stubs
         if (app()->runningInConsole()) {
-            foreach (app(Filesystem::class)->files(__DIR__ . '/../stubs/') as $file) {
+            foreach (app(Filesystem::class)->files(__DIR__.'/../stubs/') as $file) {
                 $this->publishes([
                     $file->getRealPath() => base_path("stubs/filament-pages/{$file->getFilename()}"),
                 ], 'filament-pages-stubs');
@@ -79,7 +82,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
 
         // Blade directive for frontend styles
         Blade::directive('filamentPagesStyles', function (): string {
-            $path = __DIR__ . '/../resources/css/frontend.css';
+            $path = __DIR__.'/../resources/css/frontend.css';
 
             return "<?php echo '<style>' . file_get_contents('{$path}') . '</style>'; ?>";
         });

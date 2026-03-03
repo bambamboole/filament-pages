@@ -1,12 +1,12 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Models;
 
 use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -51,7 +51,7 @@ class Page extends Model implements HasMedia, Linkable
     {
         $ogImageUrl = $this->getFirstMediaUrl('og-image') ?: null;
 
-        if (! $ogImageUrl) {
+        if (!$ogImageUrl) {
             $defaultPath = config('filament-pages.seo.defaults.default_og_image');
 
             if ($defaultPath) {
@@ -81,7 +81,7 @@ class Page extends Model implements HasMedia, Linkable
 
     public function getLink(): string
     {
-        return url($this->slug_path);
+        return url($this->localePrefixedPath());
     }
 
     public static function getNameColumn(): string
@@ -91,7 +91,21 @@ class Page extends Model implements HasMedia, Linkable
 
     public function frontendUrl(): string
     {
-        return url($this->slug_path);
+        return url($this->localePrefixedPath());
+    }
+
+    /**
+     * Build the URL path including locale prefix when locales are configured.
+     */
+    private function localePrefixedPath(): string
+    {
+        $service = app(FilamentPagesService::class);
+
+        if ($service->hasLocales() && $this->locale !== null) {
+            return '/'.$this->locale.rtrim($this->slug_path, '/');
+        }
+
+        return $this->slug_path;
     }
 
     #[\Override]
@@ -101,7 +115,7 @@ class Page extends Model implements HasMedia, Linkable
 
         static::saving(function (Page $page): void {
             $page->type ??= static::$pageType;
-            if ($page->slug === null && ! empty($page->title)) {
+            if ($page->slug === null && !empty($page->title)) {
                 $page->slug = Str::slug($page->title);
             }
 
@@ -111,7 +125,7 @@ class Page extends Model implements HasMedia, Linkable
                 ]);
             }
 
-            if (! $page->exists && $page->order === null) {
+            if (!$page->exists && $page->order === null) {
                 $page->order = (static::where('parent_id', $page->parent_id)->max('order') ?? -1) + 1;
             }
 
@@ -197,14 +211,14 @@ class Page extends Model implements HasMedia, Linkable
         }
 
         if ($this->parent_id === null) {
-            return '/' . $this->slug;
+            return '/'.$this->slug;
         }
 
         $segments = [$this->slug];
         $currentParentId = $this->parent_id;
         $visited = [];
 
-        while ($currentParentId !== null && ! isset($visited[$currentParentId])) {
+        while ($currentParentId !== null && !isset($visited[$currentParentId])) {
             $visited[$currentParentId] = true;
 
             $ancestor = static::withoutGlobalScopes()
@@ -216,11 +230,15 @@ class Page extends Model implements HasMedia, Linkable
                 break;
             }
 
-            array_unshift($segments, $ancestor->slug);
+            // Skip the homepage slug — it's "/" and would corrupt the path
+            if ($ancestor->slug !== '/') {
+                array_unshift($segments, $ancestor->slug);
+            }
+
             $currentParentId = $ancestor->parent_id;
         }
 
-        return '/' . implode('/', $segments);
+        return '/'.implode('/', $segments);
     }
 
     /**
@@ -244,12 +262,14 @@ class Page extends Model implements HasMedia, Linkable
     private static function flattenTreeOptions(Collection $items, array &$options, int $depth, ?int $excludeId): void
     {
         foreach ($items as $item) {
-            if ($item->id === $excludeId || $item->slug === '/') {
+            if ($item->id === $excludeId) {
                 continue;
             }
-
+            if ($item->slug === '/') {
+                continue;
+            }
             $prefix = $depth > 0 ? str_repeat('— ', $depth) : '';
-            $options[$item->id] = $prefix . $item->title;
+            $options[$item->id] = $prefix.$item->title;
 
             if ($item->children->isNotEmpty()) {
                 self::flattenTreeOptions($item->children, $options, $depth + 1, $excludeId);
@@ -267,7 +287,7 @@ class Page extends Model implements HasMedia, Linkable
         $blockMap = $this->getBlockMap();
         $blockClass = $blockMap[$block['type']] ?? null;
 
-        if (! $blockClass) {
+        if (!$blockClass) {
             return '';
         }
 
@@ -312,7 +332,8 @@ class Page extends Model implements HasMedia, Linkable
         $parentPath = $this->slug_path;
 
         $this->children()->each(function (Page $child) use ($parentPath): void {
-            $child->slug_path = $parentPath . '/' . $child->slug;
+            // When parent is homepage (slug_path="/"), avoid double slashes
+            $child->slug_path = rtrim($parentPath, '/').'/'.$child->slug;
             $child->saveQuietly();
 
             $child->cascadeSlugPath();

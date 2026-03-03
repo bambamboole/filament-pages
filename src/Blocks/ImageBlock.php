@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Blocks;
 
 use Filament\Forms\Components\Builder\Block;
@@ -51,7 +50,7 @@ class ImageBlock extends PageBlock
     {
         $media = null;
 
-        if ($record instanceof HasMedia && ! empty($data['image_collection_id'])) {
+        if ($record instanceof HasMedia && !empty($data['image_collection_id'])) {
             $media = $record->getMedia($data['image_collection_id'])->first();
         }
 

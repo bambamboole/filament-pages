@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Workbench\App\Filament\Pages;
 
 use Filament\Auth\Pages\Login as BaseLogin;

@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Commands;
 
 use Bambamboole\FilamentPages\Layouts\PageLayout;
@@ -52,7 +51,7 @@ class MakeLayoutCommand extends Command
     {
         if (str_contains($name, '\\')) {
             $fqcn = $name;
-            if (! str_ends_with($fqcn, 'Layout')) {
+            if (!str_ends_with($fqcn, 'Layout')) {
                 $fqcn .= 'Layout';
             }
 
@@ -62,13 +61,13 @@ class MakeLayoutCommand extends Command
             $shortName = Str::beforeLast($className, 'Layout');
             $kebabName = Str::kebab($shortName);
 
-            $filePath = base_path($this->namespaceToPath($namespace) . '/' . $className . '.php');
+            $filePath = base_path($this->namespaceToPath($namespace).'/'.$className.'.php');
 
             return ['namespace' => $namespace, 'className' => $className, 'kebabName' => $kebabName, 'filePath' => $filePath];
         }
 
         $studlyName = Str::studly($name);
-        $className = $studlyName . 'Layout';
+        $className = $studlyName.'Layout';
         $namespace = 'App\\Layouts';
         $kebabName = Str::kebab($studlyName);
         $filePath = app_path("Layouts/{$className}.php");
@@ -89,7 +88,7 @@ class MakeLayoutCommand extends Command
             if (str_starts_with($namespace, $prefix)) {
                 $relative = str_replace('\\', '/', substr($namespace, strlen($prefix)));
 
-                return rtrim((string) $path, '/') . $relative;
+                return rtrim((string) $path, '/').$relative;
             }
         }
 
@@ -161,14 +160,14 @@ BLADE;
 
         $path = resource_path("views/layouts/{$kebabName}.blade.php");
         $this->ensureDirectoryExists(dirname($path));
-        file_put_contents($path, $content . "\n");
+        file_put_contents($path, $content."\n");
 
         return $path;
     }
 
     private function ensureDirectoryExists(string $directory): void
     {
-        if (! is_dir($directory)) {
+        if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
     }

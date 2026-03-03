@@ -1,8 +1,7 @@
-<?php
-
+<?php declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Tests;
 
-use Bambamboole\FilamentPages\FilamentPages;
+use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\FilamentPagesServiceProvider;
 use Bambamboole\FilamentPages\Tests\Fixtures\TestPanelProvider;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
@@ -35,7 +34,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Bambamboole\\FilamentPages\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+            fn (string $modelName) => 'Bambamboole\\FilamentPages\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 
@@ -68,7 +67,7 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app): void
     {
-        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',
@@ -85,6 +84,6 @@ class TestCase extends Orchestra
 
     protected function defineDatabaseMigrations(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../workbench/database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../workbench/database/migrations');
     }
 }

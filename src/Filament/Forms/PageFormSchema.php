@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Filament\Forms;
 
 use Bambamboole\FilamentPages\FilamentPagesPlugin;
@@ -38,7 +37,7 @@ class PageFormSchema
         if ($withSlugSync) {
             $titleField = $titleField
                 ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
-                    if (! $get('is_slug_changed_manually') && filled($state)) {
+                    if (!$get('is_slug_changed_manually') && filled($state)) {
                         $set('slug', Str::slug($state));
                     }
                 })
@@ -101,7 +100,7 @@ class PageFormSchema
      */
     public static function wrapInSeoTabs(array $contentSchema): array
     {
-        if (! FilamentPagesPlugin::get()->isSeoEnabled()) {
+        if (!FilamentPagesPlugin::get()->isSeoEnabled()) {
             return $contentSchema;
         }
 

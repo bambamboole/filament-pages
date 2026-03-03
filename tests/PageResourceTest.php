@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 use Bambamboole\FilamentPages\Filament\Resources\PageResource\Pages\CreatePage;
 use Bambamboole\FilamentPages\Filament\Resources\PageResource\Pages\EditPage;

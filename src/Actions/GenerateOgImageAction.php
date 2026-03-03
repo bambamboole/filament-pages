@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Actions;
 
 use Bambamboole\FilamentPages\Models\Page;
@@ -23,7 +22,7 @@ class GenerateOgImageAction
             ->cancelParentActions(false)
             ->visible(fn (): bool => class_exists(Browsershot::class))
             ->action(function (Page $record, Set $set): void {
-                if (! $record->exists) {
+                if (!$record->exists) {
                     Notification::make()
                         ->title('Please save the page first')
                         ->warning()
@@ -44,7 +43,7 @@ class GenerateOgImageAction
 
                 $html = view('filament-pages::og-image', ['title' => $title, 'description' => $description, 'url' => $url])->render();
 
-                $tempPath = storage_path('app/og-image-' . $record->id . '.png');
+                $tempPath = storage_path('app/og-image-'.$record->id.'.png');
 
                 Browsershot::html($html)
                     ->windowSize(1200, 630)
@@ -67,7 +66,7 @@ class GenerateOgImageAction
         $blocks = $record->blocks ?? [];
 
         foreach ($blocks as $block) {
-            if (($block['type'] ?? '') === 'markdown' && ! empty($block['data']['content'])) {
+            if (($block['type'] ?? '') === 'markdown' && !empty($block['data']['content'])) {
                 return Str::limit(strip_tags((string) $block['data']['content']), 160);
             }
         }

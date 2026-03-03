@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 return [
 
@@ -93,5 +93,21 @@ return [
             'og_description' => '',
             'default_og_image' => null, // e.g. 'images/default-og.png'
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Routing
+    |--------------------------------------------------------------------------
+    |
+    | Configure how frontend page routes are registered. Set a prefix to nest
+    | all page routes under a path segment. Define locales as a key-value
+    | map (e.g. ['en' => 'English', 'de' => 'Deutsch']) to enable
+    | locale-prefixed routing with automatic browser detection.
+    |
+    */
+    'routing' => [
+        'prefix' => '',
+        'locales' => [],
     ],
 ];

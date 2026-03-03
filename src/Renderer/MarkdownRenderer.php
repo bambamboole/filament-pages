@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Renderer;
 
 use League\CommonMark\Environment\Environment;
@@ -93,7 +92,7 @@ class MarkdownRenderer
 
     private function extractToc(string &$html, string $tocClass): string
     {
-        $openTag = '<ul class="' . $tocClass . '">';
+        $openTag = '<ul class="'.$tocClass.'">';
         $startPos = strpos($html, $openTag);
 
         if ($startPos === false) {
@@ -120,7 +119,7 @@ class MarkdownRenderer
                 if ($depth === 0) {
                     $endPos = $nextClose + strlen('</ul>');
                     $tocHtml = substr($html, $startPos, $endPos - $startPos);
-                    $html = substr($html, 0, $startPos) . substr($html, $endPos);
+                    $html = substr($html, 0, $startPos).substr($html, $endPos);
 
                     return $tocHtml;
                 }

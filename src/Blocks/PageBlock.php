@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Blocks;
 
 use Filament\Forms\Components\Builder\Block;
@@ -29,6 +28,6 @@ abstract class PageBlock
      */
     public static function viewName(): string
     {
-        return 'filament-pages::blocks.' . static::name();
+        return 'filament-pages::blocks.'.static::name();
     }
 }

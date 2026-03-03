@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages;
 
 use Bambamboole\FilamentPages\Blocks\ImageBlock;
@@ -194,7 +193,7 @@ class FilamentPagesPlugin implements Plugin
             $hasFilamentPeek = collect($panel->getPlugins())
                 ->contains(fn (Plugin $plugin): bool => $plugin instanceof FilamentPeekPlugin);
 
-            if (! $hasFilamentPeek) {
+            if (!$hasFilamentPeek) {
                 $panel->plugin(FilamentPeekPlugin::make());
             }
 

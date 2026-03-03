@@ -1,14 +1,13 @@
 {
     "preset": "laravel",
     "rules": {
-        "blank_line_before_statement": true,
-        "concat_space": {
-            "spacing": "one"
-        },
-        "method_argument_space": true,
-        "single_trait_insert_per_statement": true,
-        "types_spaces": {
-            "space": "single"
+        "blank_line_after_opening_tag": false,
+        "linebreak_after_opening_tag": false,
+        "not_operator_with_successor_space": false,
+        "declare_strict_types": true,
+        "blank_lines_before_namespace": {
+            "min_line_breaks": 1,
+            "max_line_breaks": 1
         }
     }
 }

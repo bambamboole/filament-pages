@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Filament\Resources;
 
 use BackedEnum;
@@ -20,7 +19,7 @@ class PageResource extends Resource
 {
     protected static ?string $model = Page::class;
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static bool $shouldRegisterNavigation = false;
 

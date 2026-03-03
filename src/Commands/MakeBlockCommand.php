@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Commands;
 
 use Bambamboole\FilamentPages\Blocks\PageBlock;
@@ -52,7 +51,7 @@ class MakeBlockCommand extends Command
     {
         if (str_contains($name, '\\')) {
             $fqcn = $name;
-            if (! str_ends_with($fqcn, 'Block')) {
+            if (!str_ends_with($fqcn, 'Block')) {
                 $fqcn .= 'Block';
             }
 
@@ -62,14 +61,14 @@ class MakeBlockCommand extends Command
             $shortName = Str::beforeLast($className, 'Block');
             $kebabName = Str::kebab($shortName);
 
-            $relativePath = str_replace('\\', '/', $namespace) . '/' . $className . '.php';
-            $filePath = base_path($this->namespaceToPath($namespace) . '/' . $className . '.php');
+            $relativePath = str_replace('\\', '/', $namespace).'/'.$className.'.php';
+            $filePath = base_path($this->namespaceToPath($namespace).'/'.$className.'.php');
 
             return ['namespace' => $namespace, 'className' => $className, 'kebabName' => $kebabName, 'filePath' => $filePath];
         }
 
         $studlyName = Str::studly($name);
-        $className = $studlyName . 'Block';
+        $className = $studlyName.'Block';
         $namespace = 'App\\Blocks';
         $kebabName = Str::kebab($studlyName);
         $filePath = app_path("Blocks/{$className}.php");
@@ -90,7 +89,7 @@ class MakeBlockCommand extends Command
             if (str_starts_with($namespace, $prefix)) {
                 $relative = str_replace('\\', '/', substr($namespace, strlen($prefix)));
 
-                return rtrim((string) $path, '/') . $relative;
+                return rtrim((string) $path, '/').$relative;
             }
         }
 
@@ -138,7 +137,7 @@ PHP, [$className]);
             ->setStatic()
             ->setReturnType('array');
         $mutateData->addParameter('data')->setType('array');
-        $mutateData->addParameter('record')->setType('?' . Model::class)->setDefaultValue(null);
+        $mutateData->addParameter('record')->setType('?'.Model::class)->setDefaultValue(null);
         $mutateData->setBody(<<<'PHP'
 // Transform block data before rendering
 return $data;
@@ -163,14 +162,14 @@ BLADE;
 
         $path = resource_path("views/blocks/{$kebabName}.blade.php");
         $this->ensureDirectoryExists(dirname($path));
-        file_put_contents($path, $content . "\n");
+        file_put_contents($path, $content."\n");
 
         return $path;
     }
 
     private function ensureDirectoryExists(string $directory): void
     {
-        if (! is_dir($directory)) {
+        if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
         }
     }

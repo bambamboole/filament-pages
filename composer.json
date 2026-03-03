@@ -98,7 +98,9 @@
             "providers": [
                 "Bambamboole\\FilamentPages\\FilamentPagesServiceProvider"
             ],
-            "aliases": {}
+            "aliases": {
+                "FilamentPages": "Bambamboole\\FilamentPages\\Facades\\FilamentPages"
+            }
         }
     },
     "config": {

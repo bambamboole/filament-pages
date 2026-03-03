@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Filament\Pages;
 
 use BackedEnum;
@@ -123,7 +122,7 @@ class PageTreePage extends FilamentPage
         $this->activePageId = $pageId;
         $this->editPageId = $pageId;
 
-        $this->cacheSchema('pageForm', null);
+        $this->cacheSchema('pageForm');
 
         $this->getSchema('pageForm')->fill([
             'title' => $record->title,
@@ -146,7 +145,7 @@ class PageTreePage extends FilamentPage
         $this->activePageId = null;
         $this->editPageId = null;
 
-        $this->cacheSchema('pageForm', null);
+        $this->cacheSchema('pageForm');
 
         $this->getSchema('pageForm')->fill([
             'locale' => $this->locale,

@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace Bambamboole\FilamentPages\Tests\Fixtures;
 
 use Bambamboole\FilamentPages\Layouts\PageLayout;

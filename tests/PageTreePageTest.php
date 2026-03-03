@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 use Bambamboole\FilamentPages\Filament\Pages\PageTreePage;
 use Bambamboole\FilamentPages\Models\Page;
