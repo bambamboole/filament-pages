@@ -106,11 +106,13 @@ class FilamentPagesService
 
                 Route::get('{path}', LocaleRedirectController::class)
                     ->where('path', '.*')
+                    ->fallback()
                     ->name('filament-pages.locale-redirect-path');
             } else {
                 Route::middleware($this->cacheMiddleware())
                     ->get('{path?}', PageController::class)
                     ->where('path', '.*')
+                    ->fallback()
                     ->name('filament-pages.page');
             }
         });

@@ -13,7 +13,10 @@ class PageController
 {
     public function __invoke(Request $request): View
     {
-        $locale = $request->route('locale');
+        if ($locale = $request->route('locale')) {
+            app()->setLocale($locale);
+            cookie()->queue('locale', $locale, 60 * 24 * 365);
+        }
         $path = $request->route('path');
         $slugPath = empty($path) ? '/' : '/'.$path;
         $model = FilamentPages::model();
