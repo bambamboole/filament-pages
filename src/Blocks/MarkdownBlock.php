@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Blocks;
 
@@ -36,7 +35,7 @@ class MarkdownBlock extends PageBlock
                         Action::make('toggle_heading_permalinks')
                             ->iconButton()
                             ->icon(Heroicon::OutlinedHashtag)
-                            ->color(fn (Get $get): string => empty($get('external_links')) ? 'gray' : 'primary')
+                            ->color(fn (Get $get): string => empty($get('heading_permalinks')) ? 'gray' : 'primary')
                             ->tooltip('Toggle heading permalinks')
                             ->action(fn (Get $get, Set $set): mixed => $set('heading_permalinks', !$get('heading_permalinks'))),
                         Action::make('toggle_external_links')
