@@ -77,10 +77,10 @@ class ManagePages extends FilamentPage
 
     public function defaultPageForm(Schema $schema): Schema
     {
-        $record = $this->activePageId ? $this->getPageModel()::find($this->activePageId) : null;
+        $record = $this->activePageId ? FilamentPages::model()::find($this->activePageId) : null;
 
         return $schema
-            ->model($record ?? $this->getPageModel())
+            ->model($record ?? FilamentPages::model())
             ->operation($this->formMode === 'edit' ? 'edit' : 'create')
             ->statePath('data');
     }
@@ -105,7 +105,7 @@ class ManagePages extends FilamentPage
 
     public function selectPage(int $pageId): void
     {
-        $record = $this->getPageModel()::find($pageId);
+        $record = FilamentPages::model()::find($pageId);
 
         if (!$record instanceof Page) {
             return;
@@ -134,7 +134,7 @@ class ManagePages extends FilamentPage
 
     public function startCreatePage(): void
     {
-        if (!$this->authorizePageAction('create', $this->getPageModel())) {
+        if (!$this->authorizePageAction('create', FilamentPages::model())) {
             return;
         }
 
@@ -169,7 +169,7 @@ class ManagePages extends FilamentPage
     public function previewPage(): void
     {
         $data = $this->pageForm->getState();
-        $model = $this->getPageModel();
+        $model = FilamentPages::model();
 
         if ($this->formMode === 'edit' && $this->activePageId) {
             $record = $model::find($this->activePageId);
@@ -187,33 +187,12 @@ class ManagePages extends FilamentPage
         }
     }
 
-    public function hasLocales(): bool
-    {
-        return FilamentPages::hasLocales();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function getLocaleOptions(): array
-    {
-        return FilamentPages::locales();
-    }
-
-    /**
-     * @return class-string<Page>
-     */
-    protected function getPageModel(): string
-    {
-        return FilamentPages::model();
-    }
-
     /**
      * @return \Illuminate\Database\Eloquent\Collection<int, Page>
      */
     public function getTreeItems(): \Illuminate\Database\Eloquent\Collection
     {
-        return $this->getPageModel()::buildTree($this->locale ?: null);
+        return FilamentPages::model()::buildTree($this->locale ?: null);
     }
 
     public function deletePageAction(): Action
@@ -221,7 +200,7 @@ class ManagePages extends FilamentPage
         return Action::make('deletePage')
             ->requiresConfirmation()
             ->color('danger')
-            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
+            ->record(fn (array $arguments): ?Page => FilamentPages::model()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $record
                 && !$record->children()->exists()
                 && $this->authorizePageAction('delete', $record))
@@ -249,7 +228,7 @@ class ManagePages extends FilamentPage
         return Action::make('updatePublishedAt')
             ->modalHeading('Set Publication Date')
             ->modalWidth(Width::Medium)
-            ->record(fn (array $arguments): ?Page => $this->getPageModel()::find($arguments['pageId']))
+            ->record(fn (array $arguments): ?Page => FilamentPages::model()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
                 if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
@@ -299,7 +278,7 @@ class ManagePages extends FilamentPage
      */
     public function reorderTree(array $tree): void
     {
-        $model = $this->getPageModel();
+        $model = FilamentPages::model();
 
         if (Gate::getPolicyFor($model)) {
             Gate::authorize('reorder', $model);
@@ -356,7 +335,7 @@ class ManagePages extends FilamentPage
 
         $actions[] = Action::make('createPage')
             ->label('New Page')
-            ->visible(fn (): bool => $this->authorizePageAction('create', $this->getPageModel()))
+            ->visible(fn (): bool => $this->authorizePageAction('create', FilamentPages::model()))
             ->action(fn () => $this->startCreatePage());
 
         return $actions;
@@ -367,7 +346,7 @@ class ManagePages extends FilamentPage
      */
     private function persistTree(array $items, ?int $parentId, int &$order): void
     {
-        $model = $this->getPageModel();
+        $model = FilamentPages::model();
 
         foreach ($items as $item) {
             $model::where('id', $item['id'])->update([
@@ -387,7 +366,7 @@ class ManagePages extends FilamentPage
      */
     private function authorizePageAction(string $ability, Page|string $target, bool $enforce = false): bool
     {
-        if (!Gate::getPolicyFor($this->getPageModel())) {
+        if (!Gate::getPolicyFor(FilamentPages::model())) {
             return true;
         }
 
@@ -402,7 +381,7 @@ class ManagePages extends FilamentPage
 
     private function saveEditPage(): void
     {
-        $record = $this->getPageModel()::find($this->activePageId);
+        $record = FilamentPages::model()::find($this->activePageId);
 
         if (!$record instanceof Page) {
             return;
@@ -436,7 +415,7 @@ class ManagePages extends FilamentPage
 
     private function saveCreatePage(): void
     {
-        $model = $this->getPageModel();
+        $model = FilamentPages::model();
         $this->authorizePageAction('create', $model, enforce: true);
 
         $data = $this->pageForm->getState();
