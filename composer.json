@@ -70,12 +70,12 @@
             "@prepare",
             "@php ./vendor/bin/testbench package:discover --ansi"
         ],
-        "analyse": "phpstan analyse",
         "lint": "pint",
-        "refactor": "rector",
+        "rector": "rector",
         "test": "pest",
         "test:lint": "pint --test",
-        "test:refactor": "rector --dry-run",
+        "phpstan": "./vendor/bin/phpstan analyse",
+        "phpstan:baseline": "vendor/bin/phpstan analyse --generate-baseline",
         "clear": [
             "rm -rf vendor/orchestra/testbench-core/laravel/database/migrations",
             "rm -rf vendor/orchestra/testbench-core/laravel/database/database.sqlite",
@@ -89,8 +89,8 @@
             "@php vendor/bin/testbench serve --ansi"
         ],
         "all": [
-            "@refactor",
-            "@analyse",
+            "@rector",
+            "@phpstan",
             "@lint",
             "@test"
         ]
