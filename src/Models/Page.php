@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
 use Spatie\MediaLibrary\HasMedia;
@@ -79,7 +80,38 @@ class Page extends Model implements HasMedia, Linkable
 
         return new SEOData(
             image: $ogImageUrl,
+            schema: $this->collectBlockSchemas(),
         );
+    }
+
+    /**
+     * Collect schema markup contributions from all blocks.
+     */
+    protected function collectBlockSchemas(): ?SchemaCollection
+    {
+        $blocks = $this->blocks;
+
+        if (empty($blocks)) {
+            return null;
+        }
+
+        $blockMap = $this->getBlockMap();
+        $schema = SchemaCollection::initialize();
+        $initialMarkup = $schema->markup;
+
+        foreach ($blocks as $block) {
+            $blockClass = $blockMap[$block['type']] ?? null;
+
+            if ($blockClass) {
+                $blockClass::registerSchema($schema, $block['data'], $this);
+            }
+        }
+
+        if ($schema->markup === $initialMarkup) {
+            return null;
+        }
+
+        return $schema;
     }
 
     public function isPublished(): bool

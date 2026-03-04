@@ -160,6 +160,8 @@ use Filament\Forms\Components\TextInput;
 
 class CallToActionBlock extends PageBlock
 {
+    public static string $view = 'blocks.call-to-action';
+    
     public static function name(): string
     {
         return 'call-to-action';
@@ -175,13 +177,56 @@ class CallToActionBlock extends PageBlock
                 TextInput::make('button_url')->url()->required(),
             ]);
     }
+}
+```
 
-    public static function viewName(): string
+### Block Schema (Structured Data)
+
+Blocks can contribute JSON-LD structured data by overriding the `registerSchema()` method. The page model collects schema entries from all blocks and passes them to the SEO layer automatically.
+
+```php
+use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Filament\Forms\Components\Builder\Block;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
+use Illuminate\Database\Eloquent\Model;
+use RalphJSmit\Laravel\SEO\SchemaCollection;
+
+class FaqBlock extends PageBlock
+{
+    public static string $view = 'blocks.faq';
+
+    public static function name(): string
     {
-        return 'blocks.call-to-action';
+        return 'faq';
+    }
+
+    public static function make(): Block
+    {
+        return Block::make(static::name())
+            ->label('FAQ')
+            ->schema([
+                Repeater::make('questions')->schema([
+                    TextInput::make('question')->required(),
+                    TextInput::make('answer')->required(),
+                ]),
+            ]);
+    }
+
+    public static function registerSchema(SchemaCollection $schema, array $data, Model $record): SchemaCollection
+    {
+        return $schema->addFaqPage(function ($faqSchema) use ($data) {
+            foreach ($data['questions'] ?? [] as $item) {
+                $faqSchema->addQuestion($item['question'], $item['answer']);
+            }
+
+            return $faqSchema;
+        });
     }
 }
 ```
+
+The `SchemaCollection` supports `addFaqPage()`, `addArticle()`, and `addBreadcrumbs()` out of the box. Blocks that don't override `registerSchema()` contribute nothing — no empty `<script>` tags are generated.
 
 ## Creating Custom Layouts
 
@@ -232,11 +277,6 @@ use Bambamboole\FilamentPages\Facades\FilamentPages;
 FilamentPages::routes();
 ```
 
-This registers catch-all routes that resolve pages by their slug path. You can pass a prefix:
-
-```php
-FilamentPages::routes('pages'); // all pages under /pages/*
-```
 
 When locales are configured, routes are automatically prefixed with `{locale}`.
 
