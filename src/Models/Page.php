@@ -321,7 +321,7 @@ class Page extends Model implements HasMedia, Linkable
 
         $data = $blockClass::mutateData($block['data'], $this);
 
-        return view($blockClass::viewName(), $data)->render();
+        return view($blockClass::$view, $data)->render();
     }
 
     /**

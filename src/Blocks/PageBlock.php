@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 abstract class PageBlock
 {
+    public static string $view = '';
+
     abstract public static function name(): string;
 
     abstract public static function make(): Block;
@@ -21,13 +23,5 @@ abstract class PageBlock
     public static function mutateData(array $data, ?Model $record = null): array
     {
         return $data;
-    }
-
-    /**
-     * Blade view name for frontend rendering.
-     */
-    public static function viewName(): string
-    {
-        return 'filament-pages::blocks.'.static::name();
     }
 }

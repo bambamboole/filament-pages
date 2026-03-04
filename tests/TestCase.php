@@ -42,31 +42,27 @@ class TestCase extends Orchestra
 
     protected function getPackageProviders($app): array
     {
-        $providers = [
-            ActionsServiceProvider::class,
-            BladeCaptureDirectiveServiceProvider::class,
+        return [
+            FilamentPagesServiceProvider::class,
+            TestPanelProvider::class,
             BladeHeroiconsServiceProvider::class,
             BladeIconsServiceProvider::class,
+            ActionsServiceProvider::class,
             FilamentServiceProvider::class,
             FormsServiceProvider::class,
             InfolistsServiceProvider::class,
-            LivewireServiceProvider::class,
             NotificationsServiceProvider::class,
-            FilamentPeekServiceProvider::class,
             SchemasServiceProvider::class,
             SupportServiceProvider::class,
             TablesServiceProvider::class,
             WidgetsServiceProvider::class,
-            FilamentPagesServiceProvider::class,
+            LivewireServiceProvider::class,
+            FilamentPeekServiceProvider::class,
             LaravelSEOServiceProvider::class,
+            BladeCaptureDirectiveServiceProvider::class,
             MediaLibraryServiceProvider::class,
             ResponseCacheServiceProvider::class,
-            TestPanelProvider::class,
         ];
-
-        sort($providers);
-
-        return $providers;
     }
 
     public function getEnvironmentSetUp($app): void

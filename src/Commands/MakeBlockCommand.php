@@ -128,10 +128,11 @@ return Block::make(static::name())
     ]);
 PHP, [$className]);
 
-        $class->addMethod('viewName')
+        $class->addProperty('view')
             ->setStatic()
-            ->setReturnType('string')
-            ->setBody('return ?;', ["blocks.{$kebabName}"]);
+            ->setType('string')
+            ->setValue("blocks.{$kebabName}")
+            ->setPublic();
 
         $mutateData = $class->addMethod('mutateData')
             ->setStatic()

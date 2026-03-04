@@ -15,6 +15,8 @@ use Spatie\MediaLibrary\HasMedia;
 
 class ImageBlock extends PageBlock
 {
+    public static string $view = 'filament-pages::blocks.image';
+
     public static function name(): string
     {
         return 'image';

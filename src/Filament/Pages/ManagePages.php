@@ -188,6 +188,14 @@ class ManagePages extends FilamentPage
     }
 
     /**
+     * @return class-string<Page>
+     */
+    protected function getPageModel(): string
+    {
+        return FilamentPages::model();
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Collection<int, Page>
      */
     public function getTreeItems(): \Illuminate\Database\Eloquent\Collection

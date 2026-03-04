@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarkdownBlock extends PageBlock
 {
+    public static string $view = 'filament-pages::blocks.markdown';
+
     public static function name(): string
     {
         return 'markdown';
