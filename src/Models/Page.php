@@ -7,8 +7,10 @@ use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Facades\FilamentPages;
+use Bambamboole\FilamentPages\Observers\PageObserver;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +38,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property ?int $author_id
  * @property ?array<int, array{type: string, data: array<string, mixed>}> $blocks
  */
+#[ObservedBy(PageObserver::class)]
 class Page extends Model implements HasMedia, Linkable
 {
     use HasFactory;

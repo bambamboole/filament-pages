@@ -24,6 +24,7 @@ use Pboivin\FilamentPeek\FilamentPeekServiceProvider;
 use RalphJSmit\Laravel\SEO\LaravelSEOServiceProvider;
 use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Spatie\MediaLibrary\MediaLibraryServiceProvider;
+use Spatie\ResponseCache\ResponseCacheServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -59,6 +60,7 @@ class TestCase extends Orchestra
             FilamentPagesServiceProvider::class,
             LaravelSEOServiceProvider::class,
             MediaLibraryServiceProvider::class,
+            ResponseCacheServiceProvider::class,
             TestPanelProvider::class,
         ];
 

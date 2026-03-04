@@ -11,6 +11,7 @@ use Bambamboole\FilamentPages\Http\Controllers\PageController;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Facades\Route;
+use Spatie\ResponseCache\Middlewares\FlexibleCacheResponse;
 
 class FilamentPagesService
 {
@@ -72,18 +73,33 @@ class FilamentPagesService
         return $this->locales() !== [];
     }
 
-    public function routes(string $prefix = ''): void
+    /** @return array<string> */
+    public function cacheMiddleware(): array
     {
-        $prefix = $prefix ?: config('filament-pages.routing.prefix', '');
+        $config = config('filament-pages.cache', [
+            'enabled' => false,
+            'lifetime' => 3600,
+            'grace' => 900,
+        ]);
 
-        Route::prefix($prefix)->group(function (): void {
+        if (!$config['enabled']) {
+            return [];
+        }
+
+        return [FlexibleCacheResponse::for($config['lifetime'], $config['grace'])];
+    }
+
+    public function routes(): void
+    {
+        Route::prefix(config('filament-pages.routing.prefix', ''))->group(function (): void {
             if ($this->hasLocales()) {
                 $constraint = implode('|', array_map(preg_quote(...), array_keys($this->locales())));
 
                 Route::get('/', LocaleRedirectController::class)
                     ->name('filament-pages.locale-redirect');
 
-                Route::get('{locale}/{path?}', PageController::class)
+                Route::middleware($this->cacheMiddleware())
+                    ->get('{locale}/{path?}', PageController::class)
                     ->where('locale', $constraint)
                     ->where('path', '.*')
                     ->name('filament-pages.page');
@@ -92,7 +108,8 @@ class FilamentPagesService
                     ->where('path', '.*')
                     ->name('filament-pages.locale-redirect-path');
             } else {
-                Route::get('{path?}', PageController::class)
+                Route::middleware($this->cacheMiddleware())
+                    ->get('{path?}', PageController::class)
                     ->where('path', '.*')
                     ->name('filament-pages.page');
             }

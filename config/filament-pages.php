@@ -115,4 +115,20 @@ return [
         'prefix' => '',
         'locales' => [],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Response Cache
+    |--------------------------------------------------------------------------
+    |
+    | Enable HTTP response caching using spatie/laravel-responsecache with
+    | the stale-while-revalidate pattern. Cached responses are served
+    | instantly while being refreshed in the background after expiry.
+    |
+    */
+    'cache' => [
+        'enabled' => env('FILAMENT_PAGES_CACHE_ENABLED', false),
+        'lifetime' => 60 * 60,     // 1 hour fresh
+        'grace' => 60 * 15,        // 15 min stale-while-revalidate
+    ],
 ];

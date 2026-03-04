@@ -31,7 +31,8 @@
         "pboivin/filament-peek": "^4.0",
         "ralphjsmit/laravel-filament-seo": "^2.1",
         "ralphjsmit/laravel-seo": "^1.7",
-        "spatie/laravel-package-tools": "^1.15.0"
+        "spatie/laravel-package-tools": "^1.15.0",
+        "spatie/laravel-responsecache": "^8.0"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
