@@ -5,9 +5,11 @@ namespace Bambamboole\FilamentPages\Http\Controllers;
 
 use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Layouts\DefaultLayout;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Spatie\Attributes\Attributes;
 
 class PageController
 {
@@ -42,7 +44,8 @@ class PageController
 
         $map = [];
         foreach ($layoutClasses as $class) {
-            $map[$class::name()] = $class;
+            $attr = Attributes::get($class, IsLayout::class);
+            $map[$attr->key] = $class;
         }
 
         $layoutClass = $map[$layoutKey] ?? reset($layoutClasses);

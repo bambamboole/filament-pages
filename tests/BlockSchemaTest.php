@@ -2,6 +2,7 @@
 
 use Bambamboole\FilamentPages\Blocks\MarkdownBlock;
 use Bambamboole\FilamentPages\Models\Page;
+use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Bambamboole\FilamentPages\Tests\Fixtures\ArticleBlock;
 use Bambamboole\FilamentPages\Tests\Fixtures\FaqBlock;
 use RalphJSmit\Laravel\SEO\Schema\ArticleSchema;
@@ -16,7 +17,7 @@ it('returns no schema when page has no blocks', function () {
 });
 
 it('returns no schema when blocks do not override registerSchema', function () {
-    config(['filament-pages.blocks' => [MarkdownBlock::class]]);
+    app(FilamentPagesService::class)->setBlockClasses([MarkdownBlock::class]);
 
     $page = Page::factory()->published()->withBlocks([
         ['type' => 'markdown', 'data' => ['content' => 'Hello']],
@@ -28,7 +29,7 @@ it('returns no schema when blocks do not override registerSchema', function () {
 });
 
 it('collects faq schema from a block that registers it', function () {
-    config(['filament-pages.blocks' => [MarkdownBlock::class, FaqBlock::class]]);
+    app(FilamentPagesService::class)->setBlockClasses([MarkdownBlock::class, FaqBlock::class]);
 
     $page = Page::factory()->published()->withBlocks([
         ['type' => 'faq', 'data' => ['questions' => []]],
@@ -41,7 +42,7 @@ it('collects faq schema from a block that registers it', function () {
 });
 
 it('collects article schema from a block that registers it', function () {
-    config(['filament-pages.blocks' => [ArticleBlock::class]]);
+    app(FilamentPagesService::class)->setBlockClasses([ArticleBlock::class]);
 
     $page = Page::factory()->published()->withBlocks([
         ['type' => 'article', 'data' => ['body' => 'Some article content']],
@@ -54,7 +55,7 @@ it('collects article schema from a block that registers it', function () {
 });
 
 it('aggregates schema from multiple blocks', function () {
-    config(['filament-pages.blocks' => [FaqBlock::class, ArticleBlock::class]]);
+    app(FilamentPagesService::class)->setBlockClasses([FaqBlock::class, ArticleBlock::class]);
 
     $page = Page::factory()->published()->withBlocks([
         ['type' => 'faq', 'data' => ['questions' => []]],
@@ -69,7 +70,7 @@ it('aggregates schema from multiple blocks', function () {
 });
 
 it('skips unknown block types when collecting schema', function () {
-    config(['filament-pages.blocks' => [FaqBlock::class]]);
+    app(FilamentPagesService::class)->setBlockClasses([FaqBlock::class]);
 
     $page = Page::factory()->published()->withBlocks([
         ['type' => 'nonexistent', 'data' => []],

@@ -7,12 +7,10 @@ use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-#[IsLayout(key: 'default', label: 'Default')]
-class DefaultLayout extends AbstractLayout
+abstract class AbstractLayout implements PageLayout
 {
-    protected string $view = 'filament-pages::layouts.default';
+    protected string $view = '';
 
-    #[\Override]
     public function render(Request $request, Page $page): View
     {
         return view($this->view, ['page' => $page]);

@@ -2,6 +2,7 @@
 
 use Bambamboole\FilamentPages\Layouts\DefaultLayout;
 use Bambamboole\FilamentPages\Models\Page;
+use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Bambamboole\FilamentPages\Tests\Fixtures\CustomLayout;
 
 it('renders markdown blocks on a published page', function () {
@@ -48,10 +49,10 @@ it('uses the default layout when page has no layout set', function () {
 });
 
 it('uses a configured layout when page has layout set', function () {
-    config(['filament-pages.layouts' => [
+    app(FilamentPagesService::class)->setLayoutClasses([
         DefaultLayout::class,
         CustomLayout::class,
-    ]]);
+    ]);
 
     Page::factory()->published()->withLayout('custom')->withBlocks([
         ['type' => 'markdown', 'data' => ['content' => 'Custom layout content']],

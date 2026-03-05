@@ -3,32 +3,28 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Tests\Fixtures;
 
-use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Blocks\AbstractBlock;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
+use Bambamboole\FilamentPages\Models\Page;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Database\Eloquent\Model;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 
-class ArticleBlock extends PageBlock
+#[IsBlock(type: 'article', label: 'Article')]
+class ArticleBlock extends AbstractBlock
 {
-    public static string $view = 'filament-pages::blocks.markdown';
+    protected string $view = 'filament-pages::blocks.markdown';
 
-    public static function name(): string
+    public function build(Block $block): Block
     {
-        return 'article';
-    }
-
-    public static function make(): Block
-    {
-        return Block::make(static::name())
-            ->label('Article')
+        return $block
             ->schema([
                 TextInput::make('body'),
             ]);
     }
 
     #[\Override]
-    public static function registerSchema(SchemaCollection $schema, array $data, Model $record): SchemaCollection
+    public function registerSchema(SchemaCollection $schema, array $data, Page $page): SchemaCollection
     {
         return $schema->addArticle();
     }

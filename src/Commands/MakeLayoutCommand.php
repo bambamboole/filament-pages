@@ -3,7 +3,8 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Commands;
 
-use Bambamboole\FilamentPages\Layouts\PageLayout;
+use Bambamboole\FilamentPages\Layouts\AbstractLayout;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
@@ -39,7 +40,7 @@ class MakeLayoutCommand extends Command
             "View: {$viewPath}",
         ]);
 
-        $this->components->warn("Don't forget to register the layout in your config/filament-pages.php layouts array.");
+        $this->components->info('The layout will be auto-discovered if its directory is listed in config/filament-pages.php layout_discovery_paths.');
 
         return self::SUCCESS;
     }
@@ -101,33 +102,30 @@ class MakeLayoutCommand extends Command
         $file->setStrictTypes();
 
         $ns = $file->addNamespace($namespace);
-        $ns->addUse(PageLayout::class);
+        $ns->addUse(AbstractLayout::class);
+        $ns->addUse(IsLayout::class);
         $ns->addUse(Page::class);
         $ns->addUse(Request::class);
         $ns->addUse(View::class);
 
-        $class = $ns->addClass($className);
-        $class->addImplement(PageLayout::class);
-
-        $class->addMethod('name')
-            ->setStatic()
-            ->setReturnType('string')
-            ->setBody('return ?;', [$kebabName]);
-
         $shortName = Str::beforeLast($className, 'Layout');
+        $label = Str::title(Str::snake($shortName, ' '));
 
-        $class->addMethod('label')
-            ->setStatic()
-            ->setReturnType('string')
-            ->setBody('return ?;', [Str::title(Str::snake($shortName, ' '))]);
+        $class = $ns->addClass($className);
+        $class->addAttribute(IsLayout::class, ['key' => $kebabName, 'label' => $label]);
+        $class->setExtends(AbstractLayout::class);
+
+        $class->addProperty('view', "layouts.{$kebabName}")
+            ->setProtected()
+            ->setType('string');
 
         $render = $class->addMethod('render')
             ->setReturnType(View::class);
+        $render->addAttribute(\Override::class);
         $render->addParameter('request')->setType(Request::class);
         $render->addParameter('page')->setType(Page::class);
-        $render->setBody(<<<PHP
-// TODO: Update the view name to match your application's convention
-return view('layouts.{$kebabName}', ['page' => \$page]);
+        $render->setBody(<<<'PHP'
+return view($this->view, ['page' => $page]);
 PHP);
 
         $printer = new PsrPrinter;

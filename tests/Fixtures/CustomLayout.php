@@ -3,25 +3,20 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Tests\Fixtures;
 
-use Bambamboole\FilamentPages\Layouts\PageLayout;
+use Bambamboole\FilamentPages\Layouts\AbstractLayout;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class CustomLayout implements PageLayout
+#[IsLayout(key: 'custom', label: 'Custom')]
+class CustomLayout extends AbstractLayout
 {
-    public static function name(): string
-    {
-        return 'custom';
-    }
+    protected string $view = 'filament-pages::layouts.default';
 
-    public static function label(): string
-    {
-        return 'Custom';
-    }
-
+    #[\Override]
     public function render(Request $request, Page $page): View
     {
-        return view('filament-pages::layouts.default', ['page' => $page]);
+        return view($this->view, ['page' => $page]);
     }
 }

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages;
 
+use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Filament\Pages\ManagePages;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Closure;
@@ -12,6 +14,7 @@ use Filament\Contracts\Plugin;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Panel;
 use Pboivin\FilamentPeek\FilamentPeekPlugin;
+use Spatie\Attributes\Attributes;
 
 class FilamentPagesPlugin implements Plugin
 {
@@ -40,7 +43,14 @@ class FilamentPagesPlugin implements Plugin
     public function getBuilderBlocks(): array
     {
         return array_map(
-            fn (string $blockClass): Block => $blockClass::make(),
+            function (string $blockClass): Block {
+                $attr = Attributes::get($blockClass, IsBlock::class);
+
+                $block = Block::make($attr->type)
+                    ->label($attr->resolvedLabel());
+
+                return app($blockClass)->build($block);
+            },
             $this->getBlockClasses(),
         );
     }
@@ -59,7 +69,11 @@ class FilamentPagesPlugin implements Plugin
     public function getLayoutOptions(): array
     {
         return collect($this->getLayouts())
-            ->mapWithKeys(fn (string $class): array => [$class::name() => $class::label()])
+            ->mapWithKeys(function (string $class): array {
+                $attr = Attributes::get($class, IsLayout::class);
+
+                return [$attr->key => $attr->resolvedLabel()];
+            })
             ->toArray();
     }
 

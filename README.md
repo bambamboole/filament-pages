@@ -81,25 +81,22 @@ FilamentPagesPlugin::make()
     ->previewView('my-custom-preview-view')
 ```
 
-Blocks and layouts are configured in the `config/filament-pages.php` config file:
+Blocks and layouts are auto-discovered using PHP attributes. Add your application's directories to the discovery paths in `config/filament-pages.php`:
 
 ```php
 // config/filament-pages.php
-'blocks' => [
-    \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
-    \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
-    \App\Blocks\MyCustomBlock::class,
+'block_discovery_paths' => [
+    app_path('Blocks'),
 ],
 
-'layouts' => [
-    \Bambamboole\FilamentPages\Layouts\DefaultLayout::class,
-    \App\Layouts\LandingPageLayout::class,
+'layout_discovery_paths' => [
+    app_path('Layouts'),
 ],
 ```
 
 ### Blocks
 
-Register block types in the `blocks` config array. Each block must extend `Bambamboole\FilamentPages\Blocks\PageBlock`.
+Blocks are classes annotated with `#[IsBlock]` that extend `AbstractBlock`. They are auto-discovered from the package's built-in `Blocks/` directory and any directories listed in `block_discovery_paths`.
 
 Two blocks ship out of the box:
 - **MarkdownBlock** — Rich markdown editor with optional table of contents (top/left/right positioning), front matter parsing, and Torchlight syntax highlighting.
@@ -107,7 +104,7 @@ Two blocks ship out of the box:
 
 ### Layouts
 
-Layouts control how pages render on the frontend. Each layout implements `Bambamboole\FilamentPages\Layouts\PageLayout`. Register them in the `layouts` config array.
+Layouts control how pages render on the frontend. They are classes annotated with `#[IsLayout]` that extend `AbstractLayout`. They are auto-discovered from the package's built-in `Layouts/` directory and any directories listed in `layout_discovery_paths`.
 
 ### Multi-Locale
 
@@ -151,69 +148,61 @@ Generate a block stub with the Artisan command:
 php artisan filament-pages:make-block MyCustomBlock
 ```
 
-A custom block extends `PageBlock` and defines a name, a Filament form schema, and optionally a `mutateData()` method to transform data before rendering:
+A custom block uses the `#[IsBlock]` attribute for metadata, extends `AbstractBlock`, and defines a `build()` method to configure the Filament form schema:
 
 ```php
-use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Blocks\AbstractBlock;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\TextInput;
 
-class CallToActionBlock extends PageBlock
+#[IsBlock(type: 'call-to-action', label: 'Call to Action')]
+class CallToActionBlock extends AbstractBlock
 {
-    public static string $view = 'blocks.call-to-action';
-    
-    public static function name(): string
-    {
-        return 'call-to-action';
-    }
+    protected string $view = 'blocks.call-to-action';
 
-    public static function make(): Block
+    public function build(Block $block): Block
     {
-        return Block::make(static::name())
-            ->label('Call to Action')
-            ->schema([
-                TextInput::make('heading')->required(),
-                TextInput::make('button_text')->required(),
-                TextInput::make('button_url')->url()->required(),
-            ]);
+        return $block->schema([
+            TextInput::make('heading')->required(),
+            TextInput::make('button_text')->required(),
+            TextInput::make('button_url')->url()->required(),
+        ]);
     }
 }
 ```
+
+The `#[IsBlock]` attribute accepts `type` (unique identifier matching the block type stored in the database), `label` (display name), and an optional `translateLabel` flag. If `label` is omitted, it is derived from the type automatically.
 
 ### Block Schema (Structured Data)
 
 Blocks can contribute JSON-LD structured data by overriding the `registerSchema()` method. The page model collects schema entries from all blocks and passes them to the SEO layer automatically.
 
 ```php
-use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Blocks\AbstractBlock;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
+use Bambamboole\FilamentPages\Models\Page;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
-use Illuminate\Database\Eloquent\Model;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 
-class FaqBlock extends PageBlock
+#[IsBlock(type: 'faq', label: 'FAQ')]
+class FaqBlock extends AbstractBlock
 {
-    public static string $view = 'blocks.faq';
+    protected string $view = 'blocks.faq';
 
-    public static function name(): string
+    public function build(Block $block): Block
     {
-        return 'faq';
+        return $block->schema([
+            Repeater::make('questions')->schema([
+                TextInput::make('question')->required(),
+                TextInput::make('answer')->required(),
+            ]),
+        ]);
     }
 
-    public static function make(): Block
-    {
-        return Block::make(static::name())
-            ->label('FAQ')
-            ->schema([
-                Repeater::make('questions')->schema([
-                    TextInput::make('question')->required(),
-                    TextInput::make('answer')->required(),
-                ]),
-            ]);
-    }
-
-    public static function registerSchema(SchemaCollection $schema, array $data, Model $record): SchemaCollection
+    public function registerSchema(SchemaCollection $schema, array $data, Page $page): SchemaCollection
     {
         return $schema->addFaqPage(function ($faqSchema) use ($data) {
             foreach ($data['questions'] ?? [] as $item) {
@@ -233,31 +222,31 @@ The `SchemaCollection` supports `addFaqPage()`, `addArticle()`, and `addBreadcru
 Generate a layout stub:
 
 ```bash
-php artisan filament-pages:make-layout LandingPageLayout
+php artisan filament-pages:make-layout LandingPage
 ```
 
-A layout implements `PageLayout` and returns a view:
+A layout uses the `#[IsLayout]` attribute for metadata, extends `AbstractLayout`, and provides a `render()` method:
 
 ```php
-use Bambamboole\FilamentPages\Layouts\PageLayout;
+use Bambamboole\FilamentPages\Layouts\AbstractLayout;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
+use Bambamboole\FilamentPages\Models\Page;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
-class LandingPageLayout implements PageLayout
+#[IsLayout(key: 'landing-page', label: 'Landing Page')]
+class LandingPageLayout extends AbstractLayout
 {
-    public static function name(): string 
-    { 
-        return 'landing'; 
-    }
-    
-    public static function label(): string { 
-        return 'Landing Page';
-    }
+    protected string $view = 'layouts.landing-page';
 
     public function render(Request $request, Page $page): View
     {
-        return view('layouts.landing', ['page' => $page]);
+        return view($this->view, ['page' => $page]);
     }
 }
 ```
+
+The `#[IsLayout]` attribute accepts `key` (unique identifier used in the database), `label` (display name), and an optional `translateLabel` flag. If `label` is omitted, it is derived from the key automatically.
 
 Include `@filamentPagesStyles` in your layout's `<head>` to load the frontend CSS:
 

@@ -3,18 +3,25 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Services;
 
-use Bambamboole\FilamentPages\Blocks\ImageBlock;
-use Bambamboole\FilamentPages\Blocks\MarkdownBlock;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Http\Controllers\LocaleRedirectController;
 use Bambamboole\FilamentPages\Http\Controllers\PageController;
+use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Facades\Route;
 use Spatie\ResponseCache\Middlewares\FlexibleCacheResponse;
+use Spatie\StructureDiscoverer\Discover;
 
 class FilamentPagesService
 {
+    /** @var array<class-string<PageBlock>>|null */
+    private ?array $resolvedBlockClasses = null;
+
+    /** @var array<class-string<PageLayout>>|null */
+    private ?array $resolvedLayoutClasses = null;
+
     /** @return class-string<Page> */
     public function model(): string
     {
@@ -24,13 +31,53 @@ class FilamentPagesService
     /** @return array<class-string<PageBlock>> */
     public function blockClasses(): array
     {
-        return config('filament-pages.blocks', [MarkdownBlock::class, ImageBlock::class]);
+        return $this->resolvedBlockClasses ??= Discover::in(
+            ...array_merge(
+                [dirname(__DIR__).'/Blocks'],
+                config('filament-pages.block_discovery_paths', []),
+            )
+        )->classes()->withAttribute(IsBlock::class)->get();
+    }
+
+    /**
+     * Override discovered block classes (useful for testing).
+     *
+     * @param  array<class-string<PageBlock>>|null  $classes
+     */
+    public function setBlockClasses(?array $classes): void
+    {
+        $this->resolvedBlockClasses = $classes;
+    }
+
+    public function resetBlockCache(): void
+    {
+        $this->resolvedBlockClasses = null;
     }
 
     /** @return array<class-string<PageLayout>> */
     public function layouts(): array
     {
-        return config('filament-pages.layouts', []);
+        return $this->resolvedLayoutClasses ??= Discover::in(
+            ...array_merge(
+                [dirname(__DIR__).'/Layouts'],
+                config('filament-pages.layout_discovery_paths', []),
+            )
+        )->classes()->withAttribute(IsLayout::class)->get();
+    }
+
+    /**
+     * Override discovered layout classes (useful for testing).
+     *
+     * @param  array<class-string<PageLayout>>|null  $classes
+     */
+    public function setLayoutClasses(?array $classes): void
+    {
+        $this->resolvedLayoutClasses = $classes;
+    }
+
+    public function resetLayoutCache(): void
+    {
+        $this->resolvedLayoutClasses = null;
     }
 
     /** @return array{og_title: string, og_description: string, default_og_image: string|null} */

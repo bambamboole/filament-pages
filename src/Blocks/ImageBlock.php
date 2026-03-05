@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Blocks;
 
+use Bambamboole\FilamentPages\Models\Page;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -10,22 +11,16 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Contracts\View\View;
 
-class ImageBlock extends PageBlock
+#[IsBlock(type: 'image', label: 'Image')]
+class ImageBlock extends AbstractBlock
 {
-    public static string $view = 'filament-pages::blocks.image';
+    protected string $view = 'filament-pages::blocks.image';
 
-    public static function name(): string
+    public function build(Block $block): Block
     {
-        return 'image';
-    }
-
-    public static function make(): Block
-    {
-        return Block::make(static::name())
-            ->label('Image')
+        return $block
             ->icon(Heroicon::OutlinedPhoto)
             ->schema([
                 SpatieMediaLibraryFileUpload::make('image')
@@ -48,17 +43,17 @@ class ImageBlock extends PageBlock
 
     /** {@inheritDoc} */
     #[\Override]
-    public static function mutateData(array $data, ?Model $record = null): array
+    public function render(array $data, Page $page): View
     {
         $media = null;
 
-        if ($record instanceof HasMedia && !empty($data['image_collection_id'])) {
-            $media = $record->getMedia($data['image_collection_id'])->first();
+        if (!empty($data['image_collection_id'])) {
+            $media = $page->getMedia($data['image_collection_id'])->first();
         }
 
-        return [
+        return view($this->view, [
             'image' => $media,
             'alt' => $data['alt'] ?? '',
-        ];
+        ]);
     }
 }

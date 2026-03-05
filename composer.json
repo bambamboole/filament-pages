@@ -32,7 +32,9 @@
         "ralphjsmit/laravel-filament-seo": "^2.1",
         "ralphjsmit/laravel-seo": "^1.7",
         "spatie/laravel-package-tools": "^1.15.0",
-        "spatie/laravel-responsecache": "^8.0"
+        "spatie/laravel-responsecache": "^8.0",
+        "spatie/php-attribute-reader": "^1.1",
+        "spatie/php-structure-discoverer": "^2.4"
     },
     "require-dev": {
         "laravel/pint": "^1.0",

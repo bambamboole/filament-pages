@@ -3,11 +3,11 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Commands;
 
-use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Blocks\AbstractBlock;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Filament\Forms\Components\Builder\Block;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\PsrPrinter;
@@ -39,7 +39,7 @@ class MakeBlockCommand extends Command
             "View: {$viewPath}",
         ]);
 
-        $this->components->warn("Don't forget to register the block in your config/filament-pages.php blocks array.");
+        $this->components->info('The block will be auto-discovered via the #[IsBlock] attribute.');
 
         return self::SUCCESS;
     }
@@ -61,7 +61,6 @@ class MakeBlockCommand extends Command
             $shortName = Str::beforeLast($className, 'Block');
             $kebabName = Str::kebab($shortName);
 
-            $relativePath = str_replace('\\', '/', $namespace).'/'.$className.'.php';
             $filePath = base_path($this->namespaceToPath($namespace).'/'.$className.'.php');
 
             return ['namespace' => $namespace, 'className' => $className, 'kebabName' => $kebabName, 'filePath' => $filePath];
@@ -102,46 +101,30 @@ class MakeBlockCommand extends Command
         $file->setStrictTypes();
 
         $ns = $file->addNamespace($namespace);
-        $ns->addUse(PageBlock::class);
+        $ns->addUse(AbstractBlock::class);
+        $ns->addUse(IsBlock::class);
         $ns->addUse(Block::class);
         $ns->addUse(TextInput::class);
-        $ns->addUse(Model::class);
 
         $class = $ns->addClass($className);
-        $class->setExtends(PageBlock::class);
+        $class->setExtends(AbstractBlock::class);
+        $class->addAttribute(IsBlock::class, ['type' => $kebabName, 'label' => Str::headline($kebabName)]);
 
-        $class->addMethod('name')
-            ->setStatic()
-            ->setReturnType('string')
-            ->setBody('return ?;', [$kebabName]);
+        $class->addProperty('view')
+            ->setType('string')
+            ->setValue("blocks.{$kebabName}")
+            ->setProtected();
 
-        $class->addMethod('make')
-            ->setStatic()
-            ->setReturnType(Block::class)
-            ->setBody(<<<'PHP'
-return Block::make(static::name())
-    ->label(?)
+        $build = $class->addMethod('build')
+            ->setReturnType(Block::class);
+        $build->addParameter('block')->setType(Block::class);
+        $build->setBody(<<<'PHP'
+return $block
     ->schema([
         // Add your form fields here
         TextInput::make('title')
             ->label('Title'),
     ]);
-PHP, [$className]);
-
-        $class->addProperty('view')
-            ->setStatic()
-            ->setType('string')
-            ->setValue("blocks.{$kebabName}")
-            ->setPublic();
-
-        $mutateData = $class->addMethod('mutateData')
-            ->setStatic()
-            ->setReturnType('array');
-        $mutateData->addParameter('data')->setType('array');
-        $mutateData->addParameter('record')->setType('?'.Model::class)->setDefaultValue(null);
-        $mutateData->setBody(<<<'PHP'
-// Transform block data before rendering
-return $data;
 PHP);
 
         $printer = new PsrPrinter;

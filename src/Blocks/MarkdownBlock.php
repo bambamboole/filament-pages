@@ -1,7 +1,9 @@
 <?php
+
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Blocks;
 
+use Bambamboole\FilamentPages\Models\Page;
 use Bambamboole\FilamentPages\Renderer\MarkdownRenderer;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Builder\Block;
@@ -11,21 +13,16 @@ use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\View\View;
 
-class MarkdownBlock extends PageBlock
+#[IsBlock(type: 'markdown', label: 'Markdown')]
+class MarkdownBlock extends AbstractBlock
 {
-    public static string $view = 'filament-pages::blocks.markdown';
+    protected string $view = 'filament-pages::blocks.markdown';
 
-    public static function name(): string
+    public function build(Block $block): Block
     {
-        return 'markdown';
-    }
-
-    public static function make(): Block
-    {
-        return Block::make(static::name())
-            ->label('Markdown')
+        return $block
             ->icon(Heroicon::OutlinedDocumentText)
             ->schema([
                 Hidden::make('heading_permalinks')->default(false),
@@ -62,7 +59,7 @@ class MarkdownBlock extends PageBlock
 
     /** {@inheritDoc} */
     #[\Override]
-    public static function mutateData(array $data, ?Model $record = null): array
+    public function render(array $data, Page $page): View
     {
         $tocPosition = $data['toc_position'] ?? 'off';
         $withToc = $tocPosition !== 'off';
@@ -82,6 +79,6 @@ class MarkdownBlock extends PageBlock
         $data['toc_position'] = $tocPosition;
         $data['front_matter'] = $result->frontMatter;
 
-        return $data;
+        return view($this->view, $data);
     }
 }

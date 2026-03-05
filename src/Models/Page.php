@@ -5,6 +5,7 @@ namespace Bambamboole\FilamentPages\Models;
 
 use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
+use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Observers\PageObserver;
@@ -23,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\HasSEO;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
+use Spatie\Attributes\Attributes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -100,10 +102,10 @@ class Page extends Model implements HasMedia, Linkable
         $initialMarkup = $schema->markup;
 
         foreach ($blocks as $block) {
-            $blockClass = $blockMap[$block['type']] ?? null;
+            $instance = $blockMap[$block['type']] ?? null;
 
-            if ($blockClass) {
-                $blockClass::registerSchema($schema, $block['data'], $this);
+            if ($instance) {
+                $instance->registerSchema($schema, $block['data'], $this);
             }
         }
 
@@ -345,15 +347,13 @@ class Page extends Model implements HasMedia, Linkable
     public function renderBlock(array $block): string
     {
         $blockMap = $this->getBlockMap();
-        $blockClass = $blockMap[$block['type']] ?? null;
+        $instance = $blockMap[$block['type']] ?? null;
 
-        if (!$blockClass) {
+        if (!$instance) {
             return '';
         }
 
-        $data = $blockClass::mutateData($block['data'], $this);
-
-        return view($blockClass::$view, $data)->render();
+        return $instance->render($block['data'], $this)->render();
     }
 
     /**
@@ -367,9 +367,9 @@ class Page extends Model implements HasMedia, Linkable
     }
 
     /**
-     * Build a block type → class map respecting plugin-registered blocks.
+     * Build a block type → instance map respecting plugin-registered blocks.
      *
-     * @return array<string, class-string<PageBlock>>
+     * @return array<string, PageBlock>
      */
     private function getBlockMap(): array
     {
@@ -378,7 +378,11 @@ class Page extends Model implements HasMedia, Linkable
 
         $map = [];
         foreach ($blockClasses as $class) {
-            $map[$class::name()] = $class;
+            $attr = Attributes::get($class, IsBlock::class);
+
+            if ($attr instanceof \Bambamboole\FilamentPages\Blocks\IsBlock) {
+                $map[$attr->type] = app($class);
+            }
         }
 
         return $map;

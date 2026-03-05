@@ -1,38 +1,23 @@
 <?php
-
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Blocks;
 
+use Bambamboole\FilamentPages\Models\Page;
 use Filament\Forms\Components\Builder\Block;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\View\View;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 
-abstract class PageBlock
+interface PageBlock
 {
-    public static string $view = '';
-
-    abstract public static function name(): string;
-
-    abstract public static function make(): Block;
+    public function build(Block $block): Block;
 
     /**
-     * Transform block data before passing to the blade view.
-     *
      * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
      */
-    public static function mutateData(array $data, ?Model $record = null): array
-    {
-        return $data;
-    }
+    public function registerSchema(SchemaCollection $schema, array $data, Page $page): SchemaCollection;
 
     /**
-     * Register structured data (JSON-LD schema markup) for this block.
-     *
      * @param  array<string, mixed>  $data
      */
-    public static function registerSchema(SchemaCollection $schema, array $data, Model $record): SchemaCollection
-    {
-        return $schema;
-    }
+    public function render(array $data, Page $page): View;
 }

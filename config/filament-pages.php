@@ -15,29 +15,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Layouts
+    | Layout Discovery Paths
     |--------------------------------------------------------------------------
     |
-    | Available page layouts. Each class must extend PageLayout and provide
-    | a render() method. The first layout is used as the default fallback.
+    | Directories to scan for layout classes annotated with #[IsLayout].
+    | The package's built-in layouts (Default) are always discovered
+    | automatically. Add your application's layout directories here.
     |
     */
-    'layouts' => [
-        \Bambamboole\FilamentPages\Layouts\DefaultLayout::class,
+    'layout_discovery_paths' => [
+        app_path('Layouts'),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Content Blocks
+    | Block Discovery Paths
     |--------------------------------------------------------------------------
     |
-    | Available block types for the page builder. Each class must extend
-    | PageBlock and define a Filament form schema and a Blade view.
+    | Directories to scan for block classes annotated with #[IsBlock].
+    | The package's built-in blocks (Markdown, Image) are always discovered
+    | automatically. Add your application's block directories here.
     |
     */
-    'blocks' => [
-        \Bambamboole\FilamentPages\Blocks\MarkdownBlock::class,
-        \Bambamboole\FilamentPages\Blocks\ImageBlock::class,
+    'block_discovery_paths' => [
+        app_path('Blocks'),
     ],
 
     /*
