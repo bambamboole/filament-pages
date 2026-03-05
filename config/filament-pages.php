@@ -15,12 +15,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Built-in Blocks
+    |--------------------------------------------------------------------------
+    |
+    | When true, the package's built-in blocks (Markdown, Image) are included
+    | in discovery. Set to false to exclude them and only use your own blocks
+    | from the discovery paths below.
+    |
+    */
+    'load_default_blocks' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Layout Discovery Paths
     |--------------------------------------------------------------------------
     |
     | Directories to scan for layout classes annotated with #[IsLayout].
-    | The package's built-in layouts (Default) are always discovered
-    | automatically. Add your application's layout directories here.
+    | Add your application's layout directories here.
     |
     */
     'layout_discovery_paths' => [
@@ -33,8 +44,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Directories to scan for block classes annotated with #[IsBlock].
-    | The package's built-in blocks (Markdown, Image) are always discovered
-    | automatically. Add your application's block directories here.
+    | Add your application's block directories here.
     |
     */
     'block_discovery_paths' => [

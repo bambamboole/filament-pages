@@ -8,9 +8,9 @@ use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Bambamboole\FilamentPages\Models\Page;
 use Filament\Forms\Components\Builder;
 use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -60,10 +60,10 @@ class PageFormSchema
                     Select::make('layout')
                         ->label('Layout')
                         ->options(FilamentPagesPlugin::get()->getLayoutOptions())
-                        ->placeholder('Default'),
-                    Placeholder::make('author')
+                        ->placeholder('Select a layout'),
+                    TextEntry::make('author')
                         ->label('Author')
-                        ->content(fn (?Page $record): string => $record?->author->name ?? 'Unknown')
+                        ->state(fn (?Page $record): string => $record?->author->name ?? 'Unknown')
                         ->visibleOn('edit'),
                 ])->columnSpan(1),
             ]),

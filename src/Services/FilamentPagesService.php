@@ -31,12 +31,14 @@ class FilamentPagesService
     /** @return array<class-string<PageBlock>> */
     public function blockClasses(): array
     {
-        return $this->resolvedBlockClasses ??= Discover::in(
-            ...array_merge(
-                [dirname(__DIR__).'/Blocks'],
-                config('filament-pages.block_discovery_paths', []),
-            )
-        )->classes()->withAttribute(IsBlock::class)->get();
+        $paths = config('filament-pages.block_discovery_paths', []);
+
+        if (config('filament-pages.load_default_blocks', true)) {
+            array_unshift($paths, dirname(__DIR__).'/Blocks');
+        }
+
+        return $this->resolvedBlockClasses ??= Discover::in(...$paths)
+            ->classes()->withAttribute(IsBlock::class)->get();
     }
 
     /**
