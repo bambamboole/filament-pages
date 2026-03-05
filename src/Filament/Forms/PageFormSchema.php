@@ -59,7 +59,7 @@ class PageFormSchema
                         ->native(false),
                     Select::make('layout')
                         ->label('Layout')
-                        ->options(FilamentPagesPlugin::get()->getLayoutOptions())
+                        ->options(FilamentPages::layoutOptions())
                         ->placeholder('Select a layout'),
                     TextEntry::make('author')
                         ->label('Author')

@@ -11,6 +11,7 @@ use Bambamboole\FilamentPages\Layouts\IsLayout;
 use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Facades\Route;
+use Spatie\Attributes\Attributes;
 use Spatie\ResponseCache\Middlewares\FlexibleCacheResponse;
 use Spatie\StructureDiscoverer\Discover;
 
@@ -59,12 +60,23 @@ class FilamentPagesService
     /** @return array<class-string<PageLayout>> */
     public function layouts(): array
     {
-        return $this->resolvedLayoutClasses ??= Discover::in(
-            ...array_merge(
-                [dirname(__DIR__).'/Layouts'],
-                config('filament-pages.layout_discovery_paths', []),
-            )
-        )->classes()->withAttribute(IsLayout::class)->get();
+        $layoutPaths = config()->array('filament-pages.layout_discovery_paths', []);
+
+        return $this->resolvedLayoutClasses ??= Discover::in(...$layoutPaths)
+            ->classes()
+            ->withAttribute(IsLayout::class)
+            ->get();
+    }
+
+    public function layoutOptions(): array
+    {
+        return collect($this->layouts())
+            ->mapWithKeys(function (string $class): array {
+                $attr = Attributes::get($class, IsLayout::class);
+
+                return [$attr->key => $attr->resolvedLabel()];
+            })
+            ->toArray();
     }
 
     /**
@@ -75,11 +87,6 @@ class FilamentPagesService
     public function setLayoutClasses(?array $classes): void
     {
         $this->resolvedLayoutClasses = $classes;
-    }
-
-    public function resetLayoutCache(): void
-    {
-        $this->resolvedLayoutClasses = null;
     }
 
     /** @return array{og_title: string, og_description: string, default_og_image: string|null} */

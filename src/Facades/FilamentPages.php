@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void resetBlockCache()
  * @method static array<class-string<\Bambamboole\FilamentPages\Layouts\PageLayout>> layouts()
  * @method static void setLayoutClasses(?array $classes)
- * @method static void resetLayoutCache()
+ * @method static array layoutOptions()
  * @method static array seoDefaults()
  * @method static array markdownConfig()
  * @method static void routes(string $prefix = '')

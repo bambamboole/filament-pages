@@ -6,8 +6,6 @@ namespace Bambamboole\FilamentPages;
 use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Filament\Pages\ManagePages;
-use Bambamboole\FilamentPages\Layouts\IsLayout;
-use Bambamboole\FilamentPages\Layouts\PageLayout;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
 use Closure;
 use Filament\Contracts\Plugin;
@@ -53,28 +51,6 @@ class FilamentPagesPlugin implements Plugin
             },
             $this->getBlockClasses(),
         );
-    }
-
-    /**
-     * @return array<class-string<PageLayout>>
-     */
-    public function getLayouts(): array
-    {
-        return app(FilamentPagesService::class)->layouts();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    public function getLayoutOptions(): array
-    {
-        return collect($this->getLayouts())
-            ->mapWithKeys(function (string $class): array {
-                $attr = Attributes::get($class, IsLayout::class);
-
-                return [$attr->key => $attr->resolvedLabel()];
-            })
-            ->toArray();
     }
 
     public function seoForm(Closure $callback): static
