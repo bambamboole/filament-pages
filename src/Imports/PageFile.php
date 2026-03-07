@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Imports;
 
+use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Str;
 use SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
@@ -78,6 +79,76 @@ final readonly class PageFile
             dirKey: $dirKey,
             parentDirKey: $parentDirKey,
             sourceDir: dirname($file->getRealPath()),
+        );
+    }
+
+    public static function fromPage(Page $page, string $sourceDir): self
+    {
+        $seo = [];
+        if ($page->relationLoaded('seo') && $page->seo !== null) {
+            foreach (['title', 'description', 'author'] as $field) {
+                if ($page->seo->{$field} !== null) {
+                    $seo[$field] = $page->seo->{$field};
+                }
+            }
+        }
+
+        return new self(
+            title: $page->title,
+            slug: $page->slug,
+            order: $page->order,
+            publishedAt: $page->published_at?->toDateTimeString(),
+            layout: $page->layout,
+            locale: $page->locale,
+            type: $page->type,
+            blocks: $page->blocks ?? [],
+            seo: $seo,
+            dirKey: null,
+            parentDirKey: null,
+            sourceDir: $sourceDir,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toYamlArray(): array
+    {
+        $data = ['title' => $this->title];
+        $data['slug'] = $this->slug;
+
+        if ($this->order > 0) {
+            $data['order'] = $this->order;
+        }
+
+        if ($this->publishedAt !== null) {
+            $data['published_at'] = $this->publishedAt;
+        }
+
+        if ($this->layout !== null) {
+            $data['layout'] = $this->layout;
+        }
+
+        if (!empty($this->blocks)) {
+            $data['blocks'] = self::denormalizeBlocks($this->blocks);
+        }
+
+        if (!empty($this->seo)) {
+            $data['seo'] = $this->seo;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param  array<int, array{type: string, data: array<string, mixed>}>  $blocks
+     * @return array<int, array<string, mixed>>
+     */
+    public static function denormalizeBlocks(array $blocks): array
+    {
+        return array_map(
+            fn (array $b): array => array_merge(['type' => $b['type']], $b['data'] ?? []),
+            $blocks
         );
     }
 
