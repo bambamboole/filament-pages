@@ -2,6 +2,11 @@
 
 All notable changes to `filament-pages` will be documented in this file.
 
+## 0.3.0 - 2026-03-07
+
+* Add import and export command
+  **Full Changelog**: https://github.com/bambamboole/filament-pages/compare/0.2.1...0.3.0
+
 ## 0.2.1 - 2026-03-05
 
 * Default Layout is only a fallback
