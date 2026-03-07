@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 
 class ImportPagesCommand extends Command
 {
@@ -68,7 +68,7 @@ class ImportPagesCommand extends Command
             foreach ($files as $file) {
                 $pageFile = PageFile::fromYaml($file, $locale, $type);
 
-                if ($pageFile === null) {
+                if (!$pageFile instanceof \Bambamboole\FilamentPages\Imports\PageFile) {
                     $this->components->warn("Skipping invalid file: {$file->getRelativePathname()}");
 
                     continue;
@@ -90,11 +90,11 @@ class ImportPagesCommand extends Command
 
                 $importedKeys->push($importer->buildUniqueKey($type, $locale, $parentId, $pageFile->slug));
 
-                if (!$isDryRun && !empty($pageFile->blocks)) {
+                if (!$isDryRun && $pageFile->blocks !== []) {
                     $importer->importMedia($page, $pageFile->blocks, $pageFile->sourceDir);
                 }
 
-                if (!empty($pageFile->seo)) {
+                if ($pageFile->seo !== []) {
                     $importer->updateSeo($page, $pageFile->seo);
                 }
 
@@ -189,6 +189,6 @@ class ImportPagesCommand extends Command
             $parts[] = "{$importer->pruned} pruned";
         }
 
-        $this->components->info('Summary: '.(empty($parts) ? 'nothing to do' : implode(', ', $parts)));
+        $this->components->info('Summary: '.($parts === [] ? 'nothing to do' : implode(', ', $parts)));
     }
 }

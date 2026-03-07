@@ -5,7 +5,7 @@ namespace Bambamboole\FilamentPages\Imports;
 
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Str;
-use SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
 final readonly class PageFile
@@ -86,9 +86,12 @@ final readonly class PageFile
     {
         $seo = [];
         if ($page->relationLoaded('seo') && $page->seo !== null) {
+            /** @var \RalphJSmit\Laravel\SEO\Models\SEO $seoModel */
+            $seoModel = $page->seo;
             foreach (['title', 'description', 'author'] as $field) {
-                if ($page->seo->{$field} !== null) {
-                    $seo[$field] = $page->seo->{$field};
+                $value = $seoModel->getAttribute($field);
+                if ($value !== null) {
+                    $seo[$field] = $value;
                 }
             }
         }
@@ -129,11 +132,11 @@ final readonly class PageFile
             $data['layout'] = $this->layout;
         }
 
-        if (!empty($this->blocks)) {
+        if ($this->blocks !== []) {
             $data['blocks'] = self::denormalizeBlocks($this->blocks);
         }
 
-        if (!empty($this->seo)) {
+        if ($this->seo !== []) {
             $data['seo'] = $this->seo;
         }
 
@@ -141,7 +144,7 @@ final readonly class PageFile
     }
 
     /**
-     * @param  array<int, array{type: string, data: array<string, mixed>}>  $blocks
+     * @param  array<int, array<string, mixed>>  $blocks
      * @return array<int, array<string, mixed>>
      */
     public static function denormalizeBlocks(array $blocks): array

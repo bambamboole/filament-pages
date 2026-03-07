@@ -94,15 +94,17 @@ class PageExporter
      */
     public function exportMedia(Page $page, array &$blocks, string $exportDir): void
     {
-        foreach ($blocks as $index => &$block) {
-            if ($block['type'] !== 'image' || !isset($block['data']['image_collection_id'])) {
+        foreach ($blocks as &$block) {
+            if ($block['type'] !== 'image') {
                 continue;
             }
-
+            if (!isset($block['data']['image_collection_id'])) {
+                continue;
+            }
             $collectionId = $block['data']['image_collection_id'];
             $media = $page->getFirstMedia($collectionId);
 
-            if ($media === null) {
+            if (!$media instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media) {
                 continue;
             }
 

@@ -123,14 +123,16 @@ class PageImporter
     public function importMedia(Page $page, array $blocks, string $sourceDir): void
     {
         foreach ($blocks as $index => $block) {
-            if ($block['type'] !== 'image' || !isset($block['data']['file'])) {
+            if ($block['type'] !== 'image') {
                 continue;
             }
-
+            if (!isset($block['data']['file'])) {
+                continue;
+            }
             $filePath = $block['data']['file'];
 
             if (str_starts_with($filePath, './') || !str_starts_with($filePath, '/')) {
-                $filePath = $sourceDir.'/'.ltrim($filePath, './');
+                $filePath = $sourceDir.'/'.ltrim((string) $filePath, './');
             }
 
             if (!file_exists($filePath)) {
@@ -156,7 +158,7 @@ class PageImporter
      */
     public function updateSeo(Page $page, array $seo): void
     {
-        if (empty($seo)) {
+        if ($seo === []) {
             return;
         }
 
