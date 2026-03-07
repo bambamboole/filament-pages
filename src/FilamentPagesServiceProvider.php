@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages;
 
+use Bambamboole\FilamentPages\Commands\ImportPagesCommand;
 use Bambamboole\FilamentPages\Commands\MakeBlockCommand;
 use Bambamboole\FilamentPages\Commands\MakeLayoutCommand;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
@@ -100,6 +101,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
+            ImportPagesCommand::class,
             MakeBlockCommand::class,
             MakeLayoutCommand::class,
         ];
