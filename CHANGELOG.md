@@ -2,6 +2,12 @@
 
 All notable changes to `filament-pages` will be documented in this file.
 
+## 0.4.0 - 2026-03-10
+
+* add block assets
+* add boost skill
+  **Full Changelog**: https://github.com/bambamboole/filament-pages/compare/0.3.0...0.4.0
+
 ## 0.3.0 - 2026-03-07
 
 * Add import and export command
