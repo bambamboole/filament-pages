@@ -25,4 +25,10 @@ abstract class AbstractBlock implements PageBlock
     {
         return view($this->view, $data);
     }
+
+    /** {@inheritDoc} */
+    public function assets(): array
+    {
+        return ['css' => [], 'js' => []];
+    }
 }

@@ -5,6 +5,7 @@ namespace Bambamboole\FilamentPages\Models;
 
 use Bambamboole\FilamentMenu\Concerns\IsLinkable;
 use Bambamboole\FilamentMenu\Contracts\Linkable;
+use Bambamboole\FilamentPages\Blocks\BlockAssetBag;
 use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
 use Bambamboole\FilamentPages\Facades\FilamentPages;
@@ -361,7 +362,17 @@ class Page extends Model implements HasMedia, Linkable
      */
     public function renderBlocks(): string
     {
-        return collect($this->blocks ?? [])
+        $blocks = $this->blocks ?? [];
+        $blockMap = $this->getBlockMap();
+        $assetBag = app(BlockAssetBag::class);
+
+        foreach ($blocks as $block) {
+            if ($instance = $blockMap[$block['type']] ?? null) {
+                $assetBag->registerBlock($block['type'], $instance);
+            }
+        }
+
+        return collect($blocks)
             ->map(fn (array $block): string => $this->renderBlock($block))
             ->implode('');
     }

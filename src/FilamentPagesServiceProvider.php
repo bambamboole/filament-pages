@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages;
 
+use Bambamboole\FilamentPages\Blocks\BlockAssetBag;
 use Bambamboole\FilamentPages\Commands\ExportPagesCommand;
 use Bambamboole\FilamentPages\Commands\ImportPagesCommand;
 use Bambamboole\FilamentPages\Commands\MakeBlockCommand;
@@ -58,6 +59,7 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(FilamentPagesService::class, fn (): FilamentPagesService => new FilamentPagesService);
+        $this->app->scoped(BlockAssetBag::class);
     }
 
     public function packageBooted(): void
@@ -86,7 +88,15 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
         Blade::directive('filamentPagesStyles', function (): string {
             $path = __DIR__.'/../resources/css/frontend.css';
 
-            return "<?php echo '<style>' . file_get_contents('{$path}') . '</style>'; ?>";
+            return "<?php echo '<style' . ((\Illuminate\Support\Facades\Vite::cspNonce() ? ' nonce=\"' . \Illuminate\Support\Facades\Vite::cspNonce() . '\"' : '')) . '>' . file_get_contents('{$path}') . '</style>'; ?>";
+        });
+
+        Blade::directive('filamentPagesBlockStyles', function (): string {
+            return "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderStyles(); ?>";
+        });
+
+        Blade::directive('filamentPagesBlockScripts', function (): string {
+            return "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderScripts(); ?>";
         });
 
     }

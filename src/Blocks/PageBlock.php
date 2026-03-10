@@ -20,4 +20,7 @@ interface PageBlock
      * @param  array<string, mixed>  $data
      */
     public function render(array $data, Page $page): View;
+
+    /** @return array{css: list<BlockAsset>, js: list<BlockAsset>} */
+    public function assets(): array;
 }
