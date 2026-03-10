@@ -399,6 +399,10 @@ Supported abilities: `create`, `update`, `delete`, `reorder`.
 
 The package is **permissive by default** — when no policy is registered, all actions are allowed. Once a policy exists, only explicitly allowed abilities are permitted.
 
+## Laravel Boost Skill
+
+This package ships with a [Laravel Boost](https://laravel.com/docs/12.x/boost) skill that teaches AI agents how to create custom blocks and layouts. The skill is auto-installed when users run `php artisan boost:install` and provides detailed guidance on the block/layout architecture, asset system, and testing patterns.
+
 ## Testing
 
 ```bash
