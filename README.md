@@ -132,6 +132,21 @@ Extend the SEO form with custom fields:
 ])
 ```
 
+### Response Caching
+
+Enable HTTP response caching for frontend pages using `spatie/laravel-responsecache`:
+
+```php
+// config/filament-pages.php
+'cache' => [
+    'enabled' => env('FILAMENT_PAGES_CACHE_ENABLED', false),
+    'lifetime' => 60 * 60,   // 1 hour fresh
+    'grace' => 60 * 15,      // 15 min stale-while-revalidate
+],
+```
+
+When enabled, cached responses are served instantly and refreshed in the background after expiry. The cache is automatically invalidated when a page is saved or deleted.
+
 ### Preview
 
 Live preview is always enabled (powered by `pboivin/filament-peek`). To use a custom preview view:
@@ -217,6 +232,46 @@ class FaqBlock extends AbstractBlock
 
 The `SchemaCollection` supports `addFaqPage()`, `addArticle()`, and `addBreadcrumbs()` out of the box. Blocks that don't override `registerSchema()` contribute nothing — no empty `<script>` tags are generated.
 
+### Block Assets
+
+Blocks can declare CSS and JavaScript assets by overriding the `assets()` method. Assets are deduplicated per request and rendered via Blade directives in your layout.
+
+```php
+use Bambamboole\FilamentPages\Blocks\BlockAsset;
+
+public function assets(): array
+{
+    return [
+        'css' => [
+            BlockAsset::url(asset('css/cta.css')),
+            BlockAsset::inline('.cta { background: var(--primary); }'),
+        ],
+        'js' => [
+            BlockAsset::url('https://cdn.example.com/lib.js'),
+            BlockAsset::inline('console.log("CTA loaded");'),
+        ],
+    ];
+}
+```
+
+`BlockAsset::url()` creates a `<link>`/`<script src>` tag while `BlockAsset::inline()` creates an inline `<style>`/`<script>` tag. CSP nonces are applied automatically when `Vite::cspNonce()` is set.
+
+Include the Blade directives in your layout to render block assets:
+
+```blade
+<head>
+    @filamentPagesStyles
+    @filamentPagesBlockStyles
+</head>
+<body>
+    {!! $page->renderBlocks() !!}
+
+    @filamentPagesBlockScripts
+</body>
+```
+
+Blocks that don't override `assets()` contribute nothing.
+
 ## Creating Custom Layouts
 
 Generate a layout stub:
@@ -248,12 +303,18 @@ class LandingPageLayout extends AbstractLayout
 
 The `#[IsLayout]` attribute accepts `key` (unique identifier used in the database), `label` (display name), and an optional `translateLabel` flag. If `label` is omitted, it is derived from the key automatically.
 
-Include `@filamentPagesStyles` in your layout's `<head>` to load the frontend CSS:
+Include the asset directives in your layout to load the frontend CSS and any block-specific assets:
 
 ```blade
 <head>
     @filamentPagesStyles
+    @filamentPagesBlockStyles
 </head>
+<body>
+    {!! $page->renderBlocks() !!}
+
+    @filamentPagesBlockScripts
+</body>
 ```
 
 ## Route Registration
@@ -279,6 +340,34 @@ You can also render blocks programmatically:
 $page = Page::where('slug_path', '/about')->first();
 echo $page->renderBlocks();
 ```
+
+## Import & Export
+
+Pages can be exported to and imported from YAML files. Both commands are idempotent — running them multiple times produces the same result.
+
+### Export
+
+```bash
+php artisan filament-pages:export --path=resources/pages --locale=en --type=page
+```
+
+Exports pages as YAML files in a hierarchical directory structure. Media files are exported alongside their page. Parent pages with children use `_index.yaml`, and filenames are prefixed with their sort order (e.g. `01-about/`).
+
+### Import
+
+```bash
+php artisan filament-pages:import --path=resources/pages --locale=en --type=page --prune --dry-run
+```
+
+| Option | Description |
+|--------|-------------|
+| `--path` | Source directory (default: `resources/pages`) |
+| `--locale` | Locale for imported pages |
+| `--type` | Page type (default: `page`) |
+| `--prune` | Soft-delete database pages not found in source |
+| `--dry-run` | Preview changes without modifying the database |
+
+The importer creates, updates, or skips pages based on whether changes are detected. Soft-deleted pages are restored if they reappear in the source files. Media referenced in YAML blocks are imported automatically.
 
 ## Page Tree
 
