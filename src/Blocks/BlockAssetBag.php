@@ -26,11 +26,11 @@ class BlockAssetBag
 
         $assets = $block->assets();
 
-        foreach ($assets['css'] ?? [] as $asset) {
+        foreach ($assets['css'] as $asset) {
             $this->cssAssets[$asset->content] = $asset;
         }
 
-        foreach ($assets['js'] ?? [] as $asset) {
+        foreach ($assets['js'] as $asset) {
             $this->jsAssets[$asset->content] = $asset;
         }
     }

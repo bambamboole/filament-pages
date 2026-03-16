@@ -5,6 +5,7 @@ namespace Bambamboole\FilamentPages\Imports;
 
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Str;
+use RalphJSmit\Laravel\SEO\Models\SEO;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
 
@@ -86,7 +87,7 @@ final readonly class PageFile
     {
         $seo = [];
         if ($page->relationLoaded('seo') && $page->seo !== null) {
-            /** @var \RalphJSmit\Laravel\SEO\Models\SEO $seoModel */
+            /** @var SEO $seoModel */
             $seoModel = $page->seo;
             foreach (['title', 'description', 'author'] as $field) {
                 $value = $seoModel->getAttribute($field);

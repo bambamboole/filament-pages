@@ -68,7 +68,7 @@ class ImportPagesCommand extends Command
             foreach ($files as $file) {
                 $pageFile = PageFile::fromYaml($file, $locale, $type);
 
-                if (!$pageFile instanceof \Bambamboole\FilamentPages\Imports\PageFile) {
+                if (!$pageFile instanceof PageFile) {
                     $this->components->warn("Skipping invalid file: {$file->getRelativePathname()}");
 
                     continue;

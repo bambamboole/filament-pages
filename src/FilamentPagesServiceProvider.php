@@ -91,13 +91,9 @@ class FilamentPagesServiceProvider extends PackageServiceProvider
             return "<?php echo '<style' . ((\Illuminate\Support\Facades\Vite::cspNonce() ? ' nonce=\"' . \Illuminate\Support\Facades\Vite::cspNonce() . '\"' : '')) . '>' . file_get_contents('{$path}') . '</style>'; ?>";
         });
 
-        Blade::directive('filamentPagesBlockStyles', function (): string {
-            return "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderStyles(); ?>";
-        });
+        Blade::directive('filamentPagesBlockStyles', fn (): string => "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderStyles(); ?>");
 
-        Blade::directive('filamentPagesBlockScripts', function (): string {
-            return "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderScripts(); ?>";
-        });
+        Blade::directive('filamentPagesBlockScripts', fn (): string => "<?php echo app(\Bambamboole\FilamentPages\Blocks\BlockAssetBag::class)->renderScripts(); ?>");
 
     }
 

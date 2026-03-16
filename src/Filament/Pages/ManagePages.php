@@ -17,6 +17,7 @@ use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
@@ -196,9 +197,9 @@ class ManagePages extends FilamentPage
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, Page>
+     * @return Collection<int, Page>
      */
-    public function getTreeItems(): \Illuminate\Database\Eloquent\Collection
+    public function getTreeItems(): Collection
     {
         return FilamentPages::model()::buildTree($this->locale ?: null);
     }
@@ -213,7 +214,7 @@ class ManagePages extends FilamentPage
                 && !$record->children()->exists()
                 && $this->authorizePageAction('delete', $record))
             ->action(function (?Page $record): void {
-                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof Page) {
                     return;
                 }
 
@@ -239,7 +240,7 @@ class ManagePages extends FilamentPage
             ->record(fn (array $arguments): ?Page => FilamentPages::model()::find($arguments['pageId']))
             ->visible(fn (?Page $record): bool => $this->authorizePageAction('update', $record))
             ->mountUsing(function (Schema $form, ?Page $record): void {
-                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof Page) {
                     return;
                 }
 
@@ -253,7 +254,7 @@ class ManagePages extends FilamentPage
                     ->native(false),
             ])
             ->action(function (array $data, ?Page $record): void {
-                if (!$record instanceof \Bambamboole\FilamentPages\Models\Page) {
+                if (!$record instanceof Page) {
                     return;
                 }
 

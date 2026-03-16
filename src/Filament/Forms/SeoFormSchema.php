@@ -6,13 +6,14 @@ namespace Bambamboole\FilamentPages\Filament\Forms;
 use Bambamboole\FilamentPages\Actions\GenerateOgImageAction;
 use Bambamboole\FilamentPages\FilamentPagesPlugin;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Schemas\Components\Component;
 use RalphJSmit\Filament\SEO\SEO;
 use Spatie\Browsershot\Browsershot;
 
 class SeoFormSchema
 {
     /**
-     * @return array<\Filament\Schemas\Components\Component>
+     * @return array<Component>
      */
     public static function make(): array
     {

@@ -3,11 +3,11 @@
 declare(strict_types=1);
 namespace Bambamboole\FilamentPages\Blocks;
 
-final class BlockAsset
+final readonly class BlockAsset
 {
     private function __construct(
-        public readonly string $content,
-        public readonly bool $inline,
+        public string $content,
+        public bool $inline,
     ) {}
 
     public static function url(string $url): self

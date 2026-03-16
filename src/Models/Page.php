@@ -8,6 +8,7 @@ use Bambamboole\FilamentMenu\Contracts\Linkable;
 use Bambamboole\FilamentPages\Blocks\BlockAssetBag;
 use Bambamboole\FilamentPages\Blocks\IsBlock;
 use Bambamboole\FilamentPages\Blocks\PageBlock;
+use Bambamboole\FilamentPages\Database\Factories\PageFactory;
 use Bambamboole\FilamentPages\Facades\FilamentPages;
 use Bambamboole\FilamentPages\Observers\PageObserver;
 use Bambamboole\FilamentPages\Services\FilamentPagesService;
@@ -202,7 +203,7 @@ class Page extends Model implements HasMedia, Linkable
         });
     }
 
-    /** @return BelongsTo<\Illuminate\Database\Eloquent\Model, $this> */
+    /** @return BelongsTo<Model, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(config('auth.providers.users.model'), 'author_id');
@@ -391,7 +392,7 @@ class Page extends Model implements HasMedia, Linkable
         foreach ($blockClasses as $class) {
             $attr = Attributes::get($class, IsBlock::class);
 
-            if ($attr instanceof \Bambamboole\FilamentPages\Blocks\IsBlock) {
+            if ($attr instanceof IsBlock) {
                 $map[$attr->type] = app($class);
             }
         }
@@ -412,8 +413,8 @@ class Page extends Model implements HasMedia, Linkable
         });
     }
 
-    protected static function newFactory(): \Bambamboole\FilamentPages\Database\Factories\PageFactory
+    protected static function newFactory(): PageFactory
     {
-        return \Bambamboole\FilamentPages\Database\Factories\PageFactory::new();
+        return PageFactory::new();
     }
 }

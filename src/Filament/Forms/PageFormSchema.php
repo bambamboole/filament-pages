@@ -11,6 +11,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -25,7 +26,7 @@ class PageFormSchema
      * Build the shared page form content schema.
      *
      * @param  int|null  $excludePageId  Page ID to exclude from parent options (prevents self-referencing).
-     * @return array<\Filament\Schemas\Components\Component>
+     * @return array<Component>
      */
     public static function make(?int $excludePageId = null): array
     {
@@ -73,8 +74,8 @@ class PageFormSchema
     /**
      * Wrap content schema in SEO tabs.
      *
-     * @param  array<\Filament\Schemas\Components\Component>  $contentSchema
-     * @return array<\Filament\Schemas\Components\Component>
+     * @param  array<Component>  $contentSchema
+     * @return array<Component>
      */
     public static function wrapInSeoTabs(array $contentSchema): array
     {

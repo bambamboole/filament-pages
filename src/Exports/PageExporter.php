@@ -5,6 +5,7 @@ namespace Bambamboole\FilamentPages\Exports;
 use Bambamboole\FilamentPages\Models\Page;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\Yaml\Yaml;
 
 class PageExporter
@@ -43,7 +44,7 @@ class PageExporter
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Collection<int, Page>>  $grouped
+     * @param  Collection<int, Collection<int, Page>>  $grouped
      * @param  Collection<int, array{page: Page, hasChildren: bool, depth: int}>  $result
      */
     private function traverseDepthFirst(Collection $grouped, int $parentId, int $depth, Collection $result): void
@@ -104,7 +105,7 @@ class PageExporter
             $collectionId = $block['data']['image_collection_id'];
             $media = $page->getFirstMedia($collectionId);
 
-            if (!$media instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media) {
+            if (!$media instanceof Media) {
                 continue;
             }
 

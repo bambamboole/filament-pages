@@ -6,6 +6,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Workbench\Database\Factories\UserFactory;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -28,8 +29,8 @@ class User extends Authenticatable implements FilamentUser
         return true;
     }
 
-    protected static function newFactory(): \Workbench\Database\Factories\UserFactory
+    protected static function newFactory(): UserFactory
     {
-        return \Workbench\Database\Factories\UserFactory::new();
+        return UserFactory::new();
     }
 }
