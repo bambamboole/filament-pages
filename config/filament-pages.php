@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+use Bambamboole\FilamentPages\Models\Page;
 
 return [
 
@@ -11,7 +12,7 @@ return [
     | model that extends the default Page model to add custom behavior.
     |
     */
-    'model' => \Bambamboole\FilamentPages\Models\Page::class,
+    'model' => Page::class,
 
     /*
     |--------------------------------------------------------------------------
@@ -64,6 +65,9 @@ return [
     'markdown' => [
         'blade_blocks' => true,
         'torchlight' => false,
+        'renderer' => [
+            'soft_break' => "<br/>\n",
+        ],
         'heading_permalink' => [
             'html_class' => 'heading-permalink',
             'symbol' => '#',

@@ -14,6 +14,8 @@ use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
 use League\CommonMark\Extension\TableOfContents\TableOfContentsExtension;
 use League\CommonMark\MarkdownConverter;
+use RyanChandler\CommonmarkBladeBlock\BladeExtension;
+use Torchlight\Commonmark\V2\TorchlightExtension;
 
 class MarkdownRenderer
 {
@@ -50,12 +52,12 @@ class MarkdownRenderer
             $environment->addExtension(new TableOfContentsExtension);
         }
 
-        if (($markdownConfig['blade_blocks'] ?? true) && class_exists(\RyanChandler\CommonmarkBladeBlock\BladeExtension::class)) {
-            $environment->addExtension(new \RyanChandler\CommonmarkBladeBlock\BladeExtension);
+        if (($markdownConfig['blade_blocks'] ?? true) && class_exists(BladeExtension::class)) {
+            $environment->addExtension(new BladeExtension);
         }
 
-        if (($markdownConfig['torchlight'] ?? false) && class_exists(\Torchlight\Commonmark\V2\TorchlightExtension::class)) {
-            $environment->addExtension(new \Torchlight\Commonmark\V2\TorchlightExtension);
+        if (($markdownConfig['torchlight'] ?? false) && class_exists(TorchlightExtension::class)) {
+            $environment->addExtension(new TorchlightExtension);
         }
 
         $converter = new MarkdownConverter($environment);
@@ -136,6 +138,10 @@ class MarkdownRenderer
                 'min_heading_level' => $tocConfig['min_heading_level'] ?? 2,
                 'max_heading_level' => $tocConfig['max_heading_level'] ?? 6,
             ];
+        }
+
+        if (isset($markdownConfig['renderer'])) {
+            $config['renderer'] = $markdownConfig['renderer'];
         }
 
         return $config;
