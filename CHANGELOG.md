@@ -2,6 +2,10 @@
 
 All notable changes to `filament-pages` will be documented in this file.
 
+## 0.4.2 - 2026-03-20
+
+**Full Changelog**: https://github.com/bambamboole/filament-pages/compare/0.4.1...0.4.2
+
 ## 0.4.1 - 2026-03-16
 
 **Full Changelog**: https://github.com/bambamboole/filament-pages/compare/0.4.0...0.4.1
